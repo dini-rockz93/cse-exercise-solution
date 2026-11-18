@@ -48,7 +48,8 @@ jobs:
           SPEC_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${{ inputs.spec_path }}
         run: |
           test -f "${{ inputs.spec_path }}" || { echo "::error::Spec not found at ${{ inputs.spec_path }}"; exit 1; }
-          curl -fsS "$SPEC_URL" | head -1 | grep -q '^openapi:' || { echo "::error::Spec URL not fetchable: $SPEC_URL"; exit 1; }
+          curl -fsS "$SPEC_URL" -o "$RUNNER_TEMP/spec-check.yaml" || { echo "::error::Spec URL not fetchable: $SPEC_URL"; exit 1; }
+          grep -q '^openapi:' "$RUNNER_TEMP/spec-check.yaml" || { echo "::error::Spec URL did not return an OpenAPI document: $SPEC_URL"; exit 1; }
           echo '${{ inputs.environments_json }}' | jq -e 'type=="array"' >/dev/null
           echo '${{ inputs.env_runtime_urls_json }}' | jq -e 'type=="object"' >/dev/null
           echo "Preflight OK: $SPEC_URL"
@@ -75,6 +76,9 @@ jobs:
           postman-access-token: ${{ steps.postman-token.outputs.token || secrets.POSTMAN_ACCESS_TOKEN }}
           postman-team-id: ${{ steps.postman-token.outputs.team-id }}
           credential-preflight: enforce
+          # ci.yml was generated on the first run and is now owned by this repo
+          # (it has a mock/real target switch). Don't let reruns overwrite it.
+          generate-ci-workflow: 'false'
           github-token: ${{ secrets.GH_PAT }}
 
       - name: Summary
