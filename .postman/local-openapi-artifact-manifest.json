@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "collections": [
+    {
+      "role": "baseline",
+      "collectionPath": "postman/collections/payment-refund-api",
+      "cloudId": "60288577-955727f4-c379-5b26-9818-7a8f9dbe8c23",
+      "payloadDigest": "a829cfa46a4867af8b64372ce8c01248ffc8de2a49bded3bdad85a7528ef4bc3",
+      "artifactDigest": "d048d9fbe1177f1bf33f7dba83fb4ecffe655729ba055eb51cca1c3ef0d84807"
+    },
+    {
+      "role": "smoke",
+      "collectionPath": "postman/collections/[Smoke] payment-refund-api",
+      "cloudId": "60288577-4288f1e5-8237-517b-b896-91695890cc99",
+      "payloadDigest": "357feb743e382bbf770d4862388c02ad79852c3f76fea5a51ccdf6da59540a9d",
+      "artifactDigest": "884f3fc09426f82489276f4b0907f87ab4d357a1fcd48630be24e5361576bb76"
+    },
+    {
+      "role": "contract",
+      "collectionPath": "postman/collections/[Contract] payment-refund-api",
+      "cloudId": "60288577-de76c48d-68fe-5aa0-b375-a594719ede0b",
+      "payloadDigest": "2e800bca245c344ef1b13e0940ec3be67e1086cf71b3085db0f5c0b73657bcba",
+      "artifactDigest": "2dba44bab019620f1cc19f5f9884891f3d00a391c7f292d792075c71c023a5ad"
+    }
+  ]
+}

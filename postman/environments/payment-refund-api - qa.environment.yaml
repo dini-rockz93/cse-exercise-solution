@@ -1,0 +1,8 @@
+name: payment-refund-api - qa
+values:
+  - key: baseUrl
+    value: https://api-qa.payments.example.com/v2
+  - key: CI
+    value: 'false'
+  - key: RESPONSE_TIME_THRESHOLD
+    value: '2000'

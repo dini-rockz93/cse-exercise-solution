@@ -1,0 +1,16 @@
+version: 2
+workspace:
+  id: a254fb2a-b82a-4f97-8d95-99cdeadb5be3
+canonical:
+  collections:
+    ../postman/collections/payment-refund-api: 60288577-955727f4-c379-5b26-9818-7a8f9dbe8c23
+    ../postman/collections/[Smoke] payment-refund-api: 60288577-4288f1e5-8237-517b-b896-91695890cc99
+    ../postman/collections/[Contract] payment-refund-api: 60288577-de76c48d-68fe-5aa0-b375-a594719ede0b
+  environments:
+    ../postman/environments/payment-refund-api - dev.environment.yaml: 60288577-e373c289-7110-42f0-a562-efe3b9777ab5
+    ../postman/environments/payment-refund-api - qa.environment.yaml: 60288577-b9328f1a-6cde-41a7-adcf-fa903880a6bd
+    ../postman/environments/payment-refund-api - uat.environment.yaml: 60288577-7c97f293-80e6-4ee6-bbde-dc3d48007851
+    ../postman/environments/payment-refund-api - prod.environment.yaml: 60288577-82f12fa9-d867-4ed3-8dc7-eb5a8d401e7f
+  specs:
+    spec-url:https://raw.githubusercontent.com/dini-rockz93/cse-exercise-solution/878e8e3520a72bc0fd978bc17b5a6b09e7b75e77/specs/payment-refund-api-openapi.yaml: 05662a00-21db-4b90-a919-3e9d04cf4df9
+    ../specs/payment-refund-api-openapi.yaml: 05662a00-21db-4b90-a919-3e9d04cf4df9
