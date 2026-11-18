@@ -1,0 +1,98 @@
+name: Onboard Service
+
+# Reusable onboarding entrypoint: one dispatch per service.
+# Replaces starter-assets/ (which passed spec-path as spec-url, pinned @v0,
+# and used GITHUB_TOKEN, which cannot push generated workflow files).
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: Service project name
+        required: true
+        default: payment-refund-api
+      spec_path:
+        description: Repo-relative path to the OpenAPI spec
+        required: true
+        default: specs/payment-refund-api-openapi.yaml
+      domain:
+        description: Business domain label
+        required: false
+        default: payments
+      environments_json:
+        description: JSON array of environment slugs
+        required: true
+        default: '["dev","qa","uat","prod"]'
+      env_runtime_urls_json:
+        description: JSON map of environment slug to base URL
+        required: true
+        default: '{"dev":"https://api-dev.payments.example.com/v2","qa":"https://api-qa.payments.example.com/v2","uat":"https://api-uat.payments.example.com/v2","prod":"https://api.payments.example.com/v2"}'
+
+# One run per service at a time, so parallel dispatches can't create duplicate workspaces.
+concurrency:
+  group: onboard-${{ inputs.project_name }}
+  cancel-in-progress: false
+
+jobs:
+  onboard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Preflight
+        env:
+          SPEC_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${{ inputs.spec_path }}
+        run: |
+          test -f "${{ inputs.spec_path }}" || { echo "::error::Spec not found at ${{ inputs.spec_path }}"; exit 1; }
+          curl -fsS "$SPEC_URL" | head -1 | grep -q '^openapi:' || { echo "::error::Spec URL not fetchable: $SPEC_URL"; exit 1; }
+          echo '${{ inputs.environments_json }}' | jq -e 'type=="array"' >/dev/null
+          echo '${{ inputs.env_runtime_urls_json }}' | jq -e 'type=="object"' >/dev/null
+          echo "Preflight OK: $SPEC_URL"
+
+      - name: Mint Postman access token
+        id: postman-token
+        uses: postman-cs/postman-resolve-service-token-action@v2
+        with:
+          postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
+          postman-region: us
+
+      - name: Onboard service into Postman
+        id: onboard
+        uses: postman-cs/postman-api-onboarding-action@v4.1.0
+        with:
+          project-name: ${{ inputs.project_name }}
+          spec-url: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${{ inputs.spec_path }}
+          spec-path: ${{ inputs.spec_path }}
+          domain: ${{ inputs.domain }}
+          environments-json: ${{ inputs.environments_json }}
+          env-runtime-urls-json: ${{ inputs.env_runtime_urls_json }}
+          postman-region: us
+          postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
+          postman-access-token: ${{ steps.postman-token.outputs.token || secrets.POSTMAN_ACCESS_TOKEN }}
+          postman-team-id: ${{ steps.postman-token.outputs.team-id }}
+          credential-preflight: enforce
+          github-token: ${{ secrets.GH_PAT }}
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Onboarding: ${{ inputs.project_name }}"
+            echo "- Workspace: ${{ steps.onboard.outputs.workspace-url }}"
+            echo "- Spec ID: ${{ steps.onboard.outputs.spec-id }}"
+            echo "- Mock URL: ${{ steps.onboard.outputs.mock-url }}"
+            echo "- Monitor ID: ${{ steps.onboard.outputs.monitor-id }}"
+            echo "- Commit: ${{ steps.onboard.outputs.commit-sha }}"
+            echo "- Phases: bootstrap=${{ steps.onboard.outputs.bootstrap-outcome }}, repo-sync=${{ steps.onboard.outputs.repo-sync-outcome }}"
+            echo ""
+            echo "### Collections"
+            echo '```json'
+            echo '${{ steps.onboard.outputs.collections-json }}'
+            echo '```'
+            echo ""
+            echo "_Built-in smoke/contract runs are warning-only; check the postman-test-results artifact._"
+          } >> "$GITHUB_STEP_SUMMARY"
