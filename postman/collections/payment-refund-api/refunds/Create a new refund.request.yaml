@@ -20,7 +20,6 @@ body:
   content: |-
     {
       "transactionId": "txn_1234567890abcdef",
-      "amount": null,
       "reason": "Customer requested refund",
       "notifyCustomer": true,
       "metadata": {
