@@ -9,7 +9,7 @@ service per repo. **Claims** is a proposed GitLab adaptation, not run.
 
 | What | Where | What it shows |
 |---|---|---|
-| **Deck** | [docs/deck.pptx](docs/deck.pptx) | The presentation (also as PDF on request) |
+| **Deck** | Submitted separately (PPTX) | The presentation |
 | **Latest onboarding run** | [44470533684](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44470533684) | Re-run after the spec fix: 40 s workflow elapsed time, assets updated in place |
 | First run / rerun | [44354380990](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44354380990) (1m 34s) · [44356679969](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44356679969) (47 s) | First run created the assets; the rerun reused the observed asset IDs |
 | **Importable JSON exports** | [postman/exports/payment-refund-api/](postman/exports/payment-refund-api/) | Baseline, smoke, contract collections + environments (v2.1), credential-scanned and test-imported by [Export Collections](.github/workflows/export-collections.yml) |
@@ -359,7 +359,6 @@ environment, never prod:
 postman/collections/      # native v3 YAML exports (repo-sync)
 postman/exports/          # importable v2.1 JSON exports
 specs/                    # the three provided OpenAPI specs
-docs/deck.pptx            # presentation
 docs/engagement-plan.md   # value, rollout, handoff
 docs/runbook.md           # operating and recovery
 docs/adaptation-claims.md # second service (proposal)
