@@ -26,7 +26,7 @@ From `specs/payment-refund-api-openapi.yaml`, the [Onboard Service](.github/work
 - **Three collections:** baseline (`payment-refund-api`), `[Smoke]` and `[Contract]`
 - **Four environments** (dev, qa, uat, prod), each with the correct `baseUrl` from the spec's `servers`
 - **A mock server** that serves the spec's examples (base path includes `/v2`)
-- **A smoke monitor**, created paused and triggered once per run
+- **A smoke monitor**, created paused, triggered once per run, pointed at prod (re-pointed to the mock for the demo)
 - **A commit back to this repo** with collection exports (`postman/`), the state file
   (`.postman/resources.yaml`) and a CI workflow (`.github/workflows/ci.yml`)
 
@@ -119,7 +119,7 @@ Contract collection results from this repo's runs (Postman → `[Contract]` → 
 |---|---|---|---|---|
 | Build 1, Build 2 | Real URLs (`*.example.com`, which don't resolve) | 208 | 195 | 13 |
 | Build 4 | Mock | 208 | 201 | 7 |
-| After the spec fixes (`ca73720`) | Mock | 207 | 202 | **5**, all "no credentials" |
+| After the spec fixes (`9d98ad9`) | Mock | 207 | 202 | **5**, all "no credentials" |
 
 13 → 7 → 5: the mock removed the "no response" failures, the spec fixes removed the two
 real defects, and what's left is the one thing only the customer can provide, a CI identity.
@@ -136,7 +136,7 @@ whether requests got responses, not just the totals.
 - Response status, schema and headers are checked against the spec.
 - Security requirements are enforced. Every request is checked for credentials matching
   the spec's `security`.
-- **They found two real spec defects on day one**, both fixed in commit `ca73720`
+- **They found two real spec defects on day one**, both fixed in commit `9d98ad9`
   ("Proposed spec fixes…", which would be a PR to the payments team) and confirmed by the
   next contract run:
   1. `POST /refunds` example `full_refund` sends `amount: null`, but `amount` is a
@@ -226,7 +226,8 @@ gh workflow run onboard-service.yml \
 | GitHub token couldn't write | `200` on reads, `403` on every write | Fine-grained token had **zero** repository permissions; reads passed only because the repo is public | Added Actions, Contents, Variables, Workflows = write; verified with a `422` probe (authorized, invalid body) |
 | Generated CI always red | `ENOTFOUND api.payments.example.com` after every sync commit | `ci.yml` tests the prod environment, whose host doesn't exist | `CI_TARGET=mock` switch; took ownership of `ci.yml` so reruns don't overwrite it |
 | Create-refund failing on the mock | `POST /refunds` → `503` | That endpoint has 9 response examples, and the mock returned the 503 one | Made mock-mode tests advisory. The real fix is real environments, plus fixing the request example |
-| Two spec defects | Contract: `amount` schema failure; `/health` asks for credentials | `amount: null` in the example; `/health` missing `security: []` | Fixed the spec (`ca73720`) and re-onboarded: 7 → 5 failures |
+| Two spec defects | Contract: `amount` schema failure; `/health` asks for credentials | `amount: null` in the example; `/health` missing `security: []` | Fixed the spec (`9d98ad9`) and re-onboarded: 7 → 5 failures |
+| Monitor sent requests to `http://refunds/...` | 18 failures, 6 connection errors | The new environment's `baseUrl` was saved as a **local** value. Monitors run in Postman's cloud and only see **shared** values | Shared the value (☁ Share), and the monitor then reached the mock: 17 of 18 |
 | Preflight log noise | `curl: (23) Failure writing output` | `head -1` closed the pipe early | Download to a file, then check it |
 
 | Token as first created (0 permissions) | After the fix |
@@ -256,18 +257,23 @@ gh workflow run onboard-service.yml \
   That's why mock-mode CI is advisory.
 - **Flaky dependency.** One mock request took 60 s (`/health`), which pushed the
   average response time to 10 s. Monitors should alert on repeated failures, not on one.
-- **The monitor is paused and fails 18 of 18.** No `monitor-cron` was set, so the action
-  created it disabled and triggers it once per onboarding run. It runs from Postman's
-  cloud (US East) against the **prod** environment, so every request gets "No response".
-  The `CI_TARGET=mock` switch only affects GitHub CI, not the monitor. Scheduling it now
-  would alert on every run, so it should only be enabled once a reachable URL and
-  credentials exist. Schedule and alert routing are the customer's decision.
+- **The monitor needed a hand-edit to be useful.** The action creates it paused (no
+  `monitor-cron`), triggers it once per onboarding run, and points it at the **prod**
+  environment. Against the non-existent prod host it failed 18 of 18 with "No response".
+  The `CI_TARGET=mock` switch only affects GitHub CI, not the monitor. For the demo I
+  pointed it at a `payment-refund-api - mock` environment, and it now shows **17 of 18**,
+  the same `POST /refunds` 503 as CI. Two caveats:
+  - It's a hand-edit outside the pipeline, so a later onboarding run may reset the
+    monitor to prod. That's config drift, and the real fix is a reachable environment.
+  - It stays **unscheduled**. Scheduling it against a mock would report "healthy"
+    without checking the real API. Schedule and alert routing are the customer's call,
+    once a reachable URL and credentials exist.
 - **Where to find things in Postman:** the mock server and monitor are under the second
   sidebar view (*Mock servers* / *Monitors*), not the collections view.
 - **Advisory CI is a temporary state.** If `CI_TARGET=mock` is never removed, the
   pipeline is permanently "green but not checking anything real".
 
-![Smoke monitor: paused, 2 runs, 18 of 18 failing with no response from the example.com hosts](docs/screenshots/07-monitor.png)
+![Smoke monitor pointed at the mock: 17 of 18, the only failure is the mock's 503 on POST /refunds](docs/screenshots/07-monitor.png)
 
 ## Repo layout
 
@@ -297,7 +303,7 @@ All taken from the real runs on 18–19 Nov 2026.
 | [04-environment-prod](docs/screenshots/04-environment-prod.png) | Generated `prod` environment (`baseUrl`, `RESPONSE_TIME_THRESHOLD`) |
 | [05-auth-gap-oauth](docs/screenshots/05-auth-gap-oauth.png) | Auth copied from the spec: OAuth authorization code, no client credentials |
 | [06-mock-response](docs/screenshots/06-mock-response.png) | `GET /v2/refunds` on the mock, with no backend running |
-| [07-monitor](docs/screenshots/07-monitor.png) | Smoke monitor, paused, 18 of 18 failing against the prod URL |
+| [07-monitor](docs/screenshots/07-monitor.png) | Smoke monitor: 18/18 failing against prod, then 17/18 after pointing it at the mock |
 | [08-onboard-run-summary](docs/screenshots/08-onboard-run-summary.png) | First onboarding run: workspace, spec, mock, monitor, commit |
 | [09-ci-mock-advisory](docs/screenshots/09-ci-mock-advisory.png) | CI against the mock: green, failures visible as annotations |
 | [10-contract-run-history](docs/screenshots/10-contract-run-history.png) | Contract runs: 13 failures on real URLs, 7 on the mock |
