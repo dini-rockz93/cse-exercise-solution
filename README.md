@@ -124,6 +124,11 @@ Contract collection results from this repo's runs (Postman → `[Contract]` → 
 13 → 7 → 5: the mock removed the "no response" failures, the spec fixes removed the two
 real defects, and what's left is the one thing only the customer can provide, a CI identity.
 
+The fix loop as it ran: spec-fix commit → onboarding re-run (40s, assets updated in place)
+→ sync commit → CI against the regenerated collections:
+
+![Terminal: spec-fix commit, onboarding run, and the CI runs it triggered](docs/screenshots/13-terminal-spec-fix-run-chain.png)
+
 ![Contract collection run history](docs/screenshots/10-contract-run-history.png)
 
 **A pass count alone proves nothing.** 195 of 208 assertions "passed" when not a single
@@ -230,6 +235,8 @@ gh workflow run onboard-service.yml \
 | Monitor sent requests to `http://refunds/...` | 18 failures, 6 connection errors | The new environment's `baseUrl` was saved as a **local** value. Monitors run in Postman's cloud and only see **shared** values | Shared the value (☁ Share), and the monitor then reached the mock: 17 of 18 |
 | Preflight log noise | `curl: (23) Failure writing output` | `head -1` closed the pipe early | Download to a file, then check it |
 
+![Monitor sending requests to http://refunds/... because baseUrl was a local value](docs/screenshots/14-monitor-local-value-bug.png)
+
 | Token as first created (0 permissions) | After the fix |
 |---|---|
 | ![Fine-grained token with no repository permissions](docs/screenshots/11-pat-no-permissions.png) | ![Actions, Contents, Variables, Workflows set to read and write](docs/screenshots/12-pat-permissions-fixed.png) |
@@ -309,6 +316,8 @@ All taken from the real runs on 18–19 Nov 2026.
 | [10-contract-run-history](docs/screenshots/10-contract-run-history.png) | Contract runs: 13 failures on real URLs, 7 on the mock |
 | [11-pat-no-permissions](docs/screenshots/11-pat-no-permissions.png) | GitHub token as first created, with no permissions |
 | [12-pat-permissions-fixed](docs/screenshots/12-pat-permissions-fixed.png) | GitHub token with the permissions the workflow needs |
+| [13-terminal-spec-fix-run-chain](docs/screenshots/13-terminal-spec-fix-run-chain.png) | Terminal: onboarding dispatched from the CLI, and the commit → onboard → sync → CI chain |
+| [14-monitor-local-value-bug](docs/screenshots/14-monitor-local-value-bug.png) | Monitor hitting `http://refunds/...` while `baseUrl` was a local-only value |
 
 ## How I used AI
 
