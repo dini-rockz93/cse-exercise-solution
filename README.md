@@ -54,6 +54,8 @@ place. The rerun log shows *"Using existing workspace"*, *"Deep-updated existing
 baseline/smoke/contract collection"* and *"Discovered existing mock … existing
 monitor"*, with the same IDs as run 1 and no duplicates.
 
+![Terminal: rerun dispatched from the CLI, then the mock answering GET /v2/refunds](docs/screenshots/15-terminal-rerun-and-mock.png)
+
 ## Decisions I made
 
 ### I bypassed the starter asset instead of fixing it in place
@@ -318,6 +320,7 @@ All taken from the real runs on 18–19 Nov 2026.
 | [12-pat-permissions-fixed](docs/screenshots/12-pat-permissions-fixed.png) | GitHub token with the permissions the workflow needs |
 | [13-terminal-spec-fix-run-chain](docs/screenshots/13-terminal-spec-fix-run-chain.png) | Terminal: onboarding dispatched from the CLI, and the commit → onboard → sync → CI chain |
 | [14-monitor-local-value-bug](docs/screenshots/14-monitor-local-value-bug.png) | Monitor hitting `http://refunds/...` while `baseUrl` was a local-only value |
+| [15-terminal-rerun-and-mock](docs/screenshots/15-terminal-rerun-and-mock.png) | Terminal: rerun dispatched from the CLI, and `curl` against the mock |
 
 ## How I used AI
 
