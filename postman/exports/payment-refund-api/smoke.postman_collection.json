@@ -5,7 +5,7 @@
     "description": "Comprehensive API for managing payment refunds in a financial services platform.\nThis API handles refund creation, status tracking, cancellation, and reporting for\npayment transactions processed through the authorization and capture workflow.\n\n**Authentication:**\n- External partners: OAuth 2.0 (Bearer token)\n- Internal services: JWT token (Bearer token)\n\n**Rate Limits:**\n- Standard tier: 100 requests/minute\n- Enterprise tier: 1000 requests/minute\n\n\nContact Support:\n Name: Payment Platform Team\n Email: payment-platform@example.com\nx-pm-onboarding-content-receipt: {\"schemaVersion\":1,\"algorithm\":\"sha256\",\"digest\":\"75cf63592a9aeef44298d8e632a78d0dacc4f8ae7807fe94bd216e080088cc6a\"}",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "createdAt": "2026-11-18T17:04:09.000Z",
-    "updatedAt": "2026-11-19T06:13:11.000Z",
+    "updatedAt": "2026-11-19T13:08:09.000Z",
     "lastUpdatedBy": "60288577",
     "uid": "60288577-4288f1e5-8237-517b-b896-91695890cc99"
   },
@@ -32,7 +32,7 @@
                       }
                     }
                   ],
-                  "id": "3e010897-f3a7-4956-83b8-01a6a97b5b5e",
+                  "id": "87822cc7-319f-43b6-bac5-60f87f52ae7c",
                   "request": {
                     "method": "GET",
                     "header": [
@@ -62,7 +62,7 @@
                       ],
                       "variable": [
                         {
-                          "id": "bac0d332-a9ae-4a94-b5ea-8f90e376cee5",
+                          "id": "c974fc6d-05d5-4822-af58-ea2eefda5da1",
                           "key": "refundId",
                           "value": "rfnd_abc123def456",
                           "description": "Unique identifier for the refund"
@@ -73,7 +73,7 @@
                   },
                   "response": [
                     {
-                      "id": "d87c98f2-0ad5-42bf-820e-edcb9e975c0b",
+                      "id": "42e41244-1ae6-4310-ae78-1ccf58232404",
                       "name": "Refund status retrieved successfully",
                       "originalRequest": {
                         "method": "GET",
@@ -128,12 +128,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"refundId\": \"rfnd_xyz789ghi012\",\n  \"status\": \"pending\",\n  \"updatedAt\": \"2024-01-15T11:00:00Z\",\n  \"estimatedCompletionTime\": \"2024-01-15T15:00:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-d87c98f2-0ad5-42bf-820e-edcb9e975c0b"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-42e41244-1ae6-4310-ae78-1ccf58232404"
                     },
                     {
-                      "id": "9cce6225-16dd-4634-8a89-d8ef66c0486a",
+                      "id": "dcb9ce10-8a8f-49f5-8393-4e5671883aa1",
                       "name": "Unauthorized - Invalid or missing authentication",
                       "originalRequest": {
                         "method": "GET",
@@ -188,12 +188,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"UNAUTHORIZED\",\n  \"message\": \"Authentication token is required\",\n  \"code\": \"AUTHENTICATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-9cce6225-16dd-4634-8a89-d8ef66c0486a"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-dcb9ce10-8a8f-49f5-8393-4e5671883aa1"
                     },
                     {
-                      "id": "fd2e05a7-0d65-4f55-ba18-d20a9b838dd3",
+                      "id": "51818cee-fc6e-4e43-bc7e-310e881be9fc",
                       "name": "Refund not found",
                       "originalRequest": {
                         "method": "GET",
@@ -248,12 +248,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"REFUND_NOT_FOUND\",\n  \"message\": \"The specified refund was not found\",\n  \"details\": {\n    \"refundId\": \"rfnd_invalid123\"\n  },\n  \"code\": \"RESOURCE_NOT_FOUND\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-fd2e05a7-0d65-4f55-ba18-d20a9b838dd3"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-51818cee-fc6e-4e43-bc7e-310e881be9fc"
                     },
                     {
-                      "id": "227c3b69-1f5b-4658-baf1-75630194863d",
+                      "id": "7b950570-dd68-40a5-94bc-c66c21185ea5",
                       "name": "Internal server error",
                       "originalRequest": {
                         "method": "GET",
@@ -308,20 +308,20 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"INTERNAL_SERVER_ERROR\",\n  \"message\": \"An unexpected error occurred\",\n  \"details\": {\n    \"requestId\": \"req_abc123def456\"\n  },\n  \"code\": \"SERVER_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-227c3b69-1f5b-4658-baf1-75630194863d"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-7b950570-dd68-40a5-94bc-c66c21185ea5"
                     }
                   ],
-                  "createdAt": "2026-11-19T06:13:11.000Z",
-                  "updatedAt": "2026-11-19T06:13:11.000Z",
-                  "uid": "60288577-3e010897-f3a7-4956-83b8-01a6a97b5b5e"
+                  "createdAt": "2026-11-19T13:08:10.000Z",
+                  "updatedAt": "2026-11-19T13:08:10.000Z",
+                  "uid": "60288577-87822cc7-319f-43b6-bac5-60f87f52ae7c"
                 }
               ],
-              "id": "f5701c80-bb4a-4d3c-bfa8-d39c88ed88a6",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-f5701c80-bb4a-4d3c-bfa8-d39c88ed88a6"
+              "id": "364facd2-363c-43a1-99e0-fbad04e56d63",
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-364facd2-363c-43a1-99e0-fbad04e56d63"
             },
             {
               "name": "cancel",
@@ -339,7 +339,7 @@
                       }
                     }
                   ],
-                  "id": "567de293-c87f-42c1-9b1b-381740711e7d",
+                  "id": "2578cd00-5f8f-4b1b-a439-d166ec4648ab",
                   "request": {
                     "method": "POST",
                     "header": [
@@ -373,7 +373,7 @@
                       ],
                       "variable": [
                         {
-                          "id": "55226511-8d36-4a08-a557-7624fe3ec2c0",
+                          "id": "9a23844d-6f51-4cda-9356-acbdb6ad1237",
                           "key": "refundId",
                           "value": "rfnd_abc123def456",
                           "description": "Unique identifier for the refund"
@@ -384,7 +384,7 @@
                   },
                   "response": [
                     {
-                      "id": "6215584c-c329-4bfb-b343-44dc34f296b6",
+                      "id": "2d314868-07f6-4bbd-85aa-2fc633da6106",
                       "name": "Refund cancelled successfully",
                       "originalRequest": {
                         "method": "POST",
@@ -443,12 +443,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"refundId\": \"rfnd_xyz789ghi012\",\n  \"transactionId\": \"txn_0987654321fedcba\",\n  \"status\": \"cancelled\",\n  \"amount\": 5000,\n  \"currency\": \"USD\",\n  \"refundAmount\": 2500,\n  \"refundCurrency\": \"USD\",\n  \"reason\": \"Partial refund for damaged item\",\n  \"createdAt\": \"2024-01-15T11:00:00Z\",\n  \"updatedAt\": \"2024-01-15T11:30:00Z\",\n  \"cancelledAt\": \"2024-01-15T11:30:00Z\",\n  \"cancellationReason\": \"Customer changed mind and wants to keep the item\",\n  \"links\": {\n    \"self\": \"/refunds/rfnd_xyz789ghi012\"\n  }\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-6215584c-c329-4bfb-b343-44dc34f296b6"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-2d314868-07f6-4bbd-85aa-2fc633da6106"
                     },
                     {
-                      "id": "2b4fd420-0603-4279-b91d-48a0463661c1",
+                      "id": "3efcf750-6b67-4cfc-bc8d-cd66e117854b",
                       "name": "Bad request - Cannot cancel refund",
                       "originalRequest": {
                         "method": "POST",
@@ -507,12 +507,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"REFUND_CANNOT_BE_CANCELLED\",\n  \"message\": \"Only pending refunds can be cancelled\",\n  \"details\": {\n    \"refundId\": \"rfnd_abc123def456\",\n    \"currentStatus\": \"processing\",\n    \"allowedStatuses\": [\n      \"pending\"\n    ]\n  },\n  \"code\": \"BUSINESS_RULE_VIOLATION\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-2b4fd420-0603-4279-b91d-48a0463661c1"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-3efcf750-6b67-4cfc-bc8d-cd66e117854b"
                     },
                     {
-                      "id": "55287fa6-81cf-45b5-93af-92e2cfdeac6f",
+                      "id": "e4c7818f-097a-4d1f-a633-f2e40115e8af",
                       "name": "Unauthorized - Invalid or missing authentication",
                       "originalRequest": {
                         "method": "POST",
@@ -571,12 +571,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"UNAUTHORIZED\",\n  \"message\": \"Authentication token is required\",\n  \"code\": \"AUTHENTICATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-55287fa6-81cf-45b5-93af-92e2cfdeac6f"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-e4c7818f-097a-4d1f-a633-f2e40115e8af"
                     },
                     {
-                      "id": "eaf2e35d-d106-477b-a0a5-c1979f1207ef",
+                      "id": "8dc56e4c-89db-4afe-8b17-5cc173ac3960",
                       "name": "Refund not found",
                       "originalRequest": {
                         "method": "POST",
@@ -635,12 +635,12 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"REFUND_NOT_FOUND\",\n  \"message\": \"The specified refund was not found\",\n  \"details\": {\n    \"refundId\": \"rfnd_invalid123\"\n  },\n  \"code\": \"RESOURCE_NOT_FOUND\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-eaf2e35d-d106-477b-a0a5-c1979f1207ef"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-8dc56e4c-89db-4afe-8b17-5cc173ac3960"
                     },
                     {
-                      "id": "2406ab17-fb4f-4255-947e-a6ffd4a0c322",
+                      "id": "0b703999-72a5-4503-b475-4e2cf6b966b5",
                       "name": "Internal server error",
                       "originalRequest": {
                         "method": "POST",
@@ -699,20 +699,20 @@
                       "cookie": [],
                       "responseTime": null,
                       "body": "{\n  \"error\": \"INTERNAL_SERVER_ERROR\",\n  \"message\": \"An unexpected error occurred\",\n  \"details\": {\n    \"requestId\": \"req_abc123def456\"\n  },\n  \"code\": \"SERVER_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                      "createdAt": "2026-11-19T06:13:11.000Z",
-                      "updatedAt": "2026-11-19T06:13:11.000Z",
-                      "uid": "60288577-2406ab17-fb4f-4255-947e-a6ffd4a0c322"
+                      "createdAt": "2026-11-19T13:08:10.000Z",
+                      "updatedAt": "2026-11-19T13:08:10.000Z",
+                      "uid": "60288577-0b703999-72a5-4503-b475-4e2cf6b966b5"
                     }
                   ],
-                  "createdAt": "2026-11-19T06:13:11.000Z",
-                  "updatedAt": "2026-11-19T06:13:11.000Z",
-                  "uid": "60288577-567de293-c87f-42c1-9b1b-381740711e7d"
+                  "createdAt": "2026-11-19T13:08:10.000Z",
+                  "updatedAt": "2026-11-19T13:08:10.000Z",
+                  "uid": "60288577-2578cd00-5f8f-4b1b-a439-d166ec4648ab"
                 }
               ],
-              "id": "7e0ced91-ae76-46c1-8c4c-58223fed4df5",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-7e0ced91-ae76-46c1-8c4c-58223fed4df5"
+              "id": "e5de9eb5-7ce3-44e3-8e95-fb0cb7774bdb",
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-e5de9eb5-7ce3-44e3-8e95-fb0cb7774bdb"
             },
             {
               "name": "Get refund details",
@@ -727,7 +727,7 @@
                   }
                 }
               ],
-              "id": "819c8126-9fde-48b5-ae62-71374760bb65",
+              "id": "a4de0b7f-3b0f-4840-8528-4133b45b79d1",
               "request": {
                 "method": "GET",
                 "header": [
@@ -756,7 +756,7 @@
                   ],
                   "variable": [
                     {
-                      "id": "dd57ffbe-b62f-4765-bbdf-c55ab4bc14b7",
+                      "id": "fed3d929-a0c3-44f5-adaf-c62637fc50cf",
                       "key": "refundId",
                       "value": "rfnd_abc123def456",
                       "description": "Unique identifier for the refund"
@@ -767,7 +767,7 @@
               },
               "response": [
                 {
-                  "id": "ce9e16a8-dfeb-4bb5-95e8-76ec6e0fe5e9",
+                  "id": "aa8d1fd8-9648-43bc-bbc2-7d009a07c5d0",
                   "name": "Refund details retrieved successfully",
                   "originalRequest": {
                     "method": "GET",
@@ -821,12 +821,12 @@
                   "cookie": [],
                   "responseTime": null,
                   "body": "{\n  \"refundId\": \"rfnd_abc123def456\",\n  \"transactionId\": \"txn_1234567890abcdef\",\n  \"status\": \"completed\",\n  \"amount\": 5000,\n  \"currency\": \"USD\",\n  \"refundAmount\": 5000,\n  \"refundCurrency\": \"USD\",\n  \"reason\": \"Customer requested refund\",\n  \"createdAt\": \"2024-01-15T10:30:00Z\",\n  \"updatedAt\": \"2024-01-15T14:25:00Z\",\n  \"completedAt\": \"2024-01-15T14:25:00Z\",\n  \"processingTime\": 14520,\n  \"statusHistory\": [\n    {\n      \"status\": \"pending\",\n      \"timestamp\": \"2024-01-15T10:30:00Z\",\n      \"message\": \"Refund request created\"\n    },\n    {\n      \"status\": \"processing\",\n      \"timestamp\": \"2024-01-15T12:00:00Z\",\n      \"message\": \"Refund processing initiated\"\n    },\n    {\n      \"status\": \"completed\",\n      \"timestamp\": \"2024-01-15T14:25:00Z\",\n      \"message\": \"Refund processed successfully\"\n    }\n  ],\n  \"metadata\": {\n    \"initiatedBy\": \"admin@example.com\",\n    \"ticketNumber\": \"TKT-12345\",\n    \"paymentGatewayRefundId\": \"pg_rfnd_789xyz\"\n  },\n  \"links\": {\n    \"self\": \"/refunds/rfnd_abc123def456\",\n    \"transaction\": \"/transactions/txn_1234567890abcdef\"\n  }\n}",
-                  "createdAt": "2026-11-19T06:13:11.000Z",
-                  "updatedAt": "2026-11-19T06:13:11.000Z",
-                  "uid": "60288577-ce9e16a8-dfeb-4bb5-95e8-76ec6e0fe5e9"
+                  "createdAt": "2026-11-19T13:08:10.000Z",
+                  "updatedAt": "2026-11-19T13:08:10.000Z",
+                  "uid": "60288577-aa8d1fd8-9648-43bc-bbc2-7d009a07c5d0"
                 },
                 {
-                  "id": "9f385056-d170-4869-ac83-46be19c5cc84",
+                  "id": "fc0510d7-33c6-487a-b44c-5dd6fee32768",
                   "name": "Unauthorized - Invalid or missing authentication",
                   "originalRequest": {
                     "method": "GET",
@@ -880,12 +880,12 @@
                   "cookie": [],
                   "responseTime": null,
                   "body": "{\n  \"error\": \"UNAUTHORIZED\",\n  \"message\": \"Authentication token is required\",\n  \"code\": \"AUTHENTICATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                  "createdAt": "2026-11-19T06:13:11.000Z",
-                  "updatedAt": "2026-11-19T06:13:11.000Z",
-                  "uid": "60288577-9f385056-d170-4869-ac83-46be19c5cc84"
+                  "createdAt": "2026-11-19T13:08:10.000Z",
+                  "updatedAt": "2026-11-19T13:08:10.000Z",
+                  "uid": "60288577-fc0510d7-33c6-487a-b44c-5dd6fee32768"
                 },
                 {
-                  "id": "a09029c2-2358-4337-b65d-ada2e70bd5b4",
+                  "id": "19fb142b-8a98-413d-abd0-d6032f72589e",
                   "name": "Refund not found",
                   "originalRequest": {
                     "method": "GET",
@@ -939,12 +939,12 @@
                   "cookie": [],
                   "responseTime": null,
                   "body": "{\n  \"error\": \"REFUND_NOT_FOUND\",\n  \"message\": \"The specified refund was not found\",\n  \"details\": {\n    \"refundId\": \"rfnd_invalid123\",\n    \"suggestion\": \"Verify the refund ID and try again\"\n  },\n  \"code\": \"RESOURCE_NOT_FOUND\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                  "createdAt": "2026-11-19T06:13:11.000Z",
-                  "updatedAt": "2026-11-19T06:13:11.000Z",
-                  "uid": "60288577-a09029c2-2358-4337-b65d-ada2e70bd5b4"
+                  "createdAt": "2026-11-19T13:08:10.000Z",
+                  "updatedAt": "2026-11-19T13:08:10.000Z",
+                  "uid": "60288577-19fb142b-8a98-413d-abd0-d6032f72589e"
                 },
                 {
-                  "id": "70a520ad-f74a-4d53-ae66-0db714f1610a",
+                  "id": "3ae30a56-f2ff-4be8-9ae9-0baa12015dbb",
                   "name": "Internal server error",
                   "originalRequest": {
                     "method": "GET",
@@ -998,20 +998,20 @@
                   "cookie": [],
                   "responseTime": null,
                   "body": "{\n  \"error\": \"INTERNAL_SERVER_ERROR\",\n  \"message\": \"An unexpected error occurred\",\n  \"details\": {\n    \"requestId\": \"req_abc123def456\"\n  },\n  \"code\": \"SERVER_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-                  "createdAt": "2026-11-19T06:13:11.000Z",
-                  "updatedAt": "2026-11-19T06:13:11.000Z",
-                  "uid": "60288577-70a520ad-f74a-4d53-ae66-0db714f1610a"
+                  "createdAt": "2026-11-19T13:08:10.000Z",
+                  "updatedAt": "2026-11-19T13:08:10.000Z",
+                  "uid": "60288577-3ae30a56-f2ff-4be8-9ae9-0baa12015dbb"
                 }
               ],
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-819c8126-9fde-48b5-ae62-71374760bb65"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-a4de0b7f-3b0f-4840-8528-4133b45b79d1"
             }
           ],
-          "id": "b2ea2696-5dca-4bd8-8d9b-a8127d35e22a",
-          "createdAt": "2026-11-19T06:13:11.000Z",
-          "updatedAt": "2026-11-19T06:13:11.000Z",
-          "uid": "60288577-b2ea2696-5dca-4bd8-8d9b-a8127d35e22a"
+          "id": "eded3415-d444-4e3a-9da8-0c1304dce961",
+          "createdAt": "2026-11-19T13:08:10.000Z",
+          "updatedAt": "2026-11-19T13:08:10.000Z",
+          "uid": "60288577-eded3415-d444-4e3a-9da8-0c1304dce961"
         },
         {
           "name": "Create a new refund",
@@ -1026,7 +1026,7 @@
               }
             }
           ],
-          "id": "b7ebf536-7f29-477a-905e-ac961c5b3843",
+          "id": "4d2a2cea-75ca-4519-9e4e-98fedbb05f0f",
           "request": {
             "method": "POST",
             "header": [
@@ -1061,7 +1061,7 @@
           },
           "response": [
             {
-              "id": "bae80b73-30ab-4d01-8735-8ce6d45c6e95",
+              "id": "5fc4ff41-ef81-4a5e-9e98-53952c291285",
               "name": "Refund created successfully",
               "originalRequest": {
                 "method": "POST",
@@ -1117,12 +1117,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"refundId\": \"rfnd_abc123def456\",\n  \"transactionId\": \"txn_1234567890abcdef\",\n  \"status\": \"pending\",\n  \"amount\": 5000,\n  \"currency\": \"USD\",\n  \"refundAmount\": 5000,\n  \"refundCurrency\": \"USD\",\n  \"reason\": \"Customer requested refund\",\n  \"createdAt\": \"2024-01-15T10:30:00Z\",\n  \"updatedAt\": \"2024-01-15T10:30:00Z\",\n  \"estimatedCompletionTime\": \"2024-01-15T14:30:00Z\",\n  \"metadata\": {\n    \"initiatedBy\": \"admin@example.com\",\n    \"ticketNumber\": \"TKT-12345\"\n  },\n  \"links\": {\n    \"self\": \"/refunds/rfnd_abc123def456\",\n    \"status\": \"/refunds/rfnd_abc123def456/status\",\n    \"cancel\": \"/refunds/rfnd_abc123def456/cancel\"\n  }\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-bae80b73-30ab-4d01-8735-8ce6d45c6e95"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-5fc4ff41-ef81-4a5e-9e98-53952c291285"
             },
             {
-              "id": "1fbccb09-8aad-4b9e-9af7-d68df0003dfc",
+              "id": "2a2cc726-88c0-4092-9a36-ce8a06d0ae5a",
               "name": "Bad request - Invalid input or business rule violation",
               "originalRequest": {
                 "method": "POST",
@@ -1172,12 +1172,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"INVALID_REFUND_AMOUNT\",\n  \"message\": \"Refund amount exceeds the original transaction amount\",\n  \"details\": {\n    \"transactionId\": \"txn_1234567890abcdef\",\n    \"originalAmount\": 5000,\n    \"requestedRefundAmount\": 6000,\n    \"currency\": \"USD\"\n  },\n  \"code\": \"VALIDATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-1fbccb09-8aad-4b9e-9af7-d68df0003dfc"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-2a2cc726-88c0-4092-9a36-ce8a06d0ae5a"
             },
             {
-              "id": "99b8b823-4ea7-4386-af81-457c3f9128bf",
+              "id": "733191f7-dfeb-49a4-aa60-7b989554143c",
               "name": "Unauthorized - Invalid or missing authentication token",
               "originalRequest": {
                 "method": "POST",
@@ -1227,12 +1227,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"UNAUTHORIZED\",\n  \"message\": \"Authentication token is required\",\n  \"details\": {\n    \"requiredAuth\": \"Bearer token (OAuth 2.0 or JWT)\"\n  },\n  \"code\": \"AUTHENTICATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-99b8b823-4ea7-4386-af81-457c3f9128bf"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-733191f7-dfeb-49a4-aa60-7b989554143c"
             },
             {
-              "id": "2cc75c4f-9a07-4191-a9ca-1052cea91261",
+              "id": "96e84834-87cc-463d-94d8-18676f87ef29",
               "name": "Transaction not found",
               "originalRequest": {
                 "method": "POST",
@@ -1282,12 +1282,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"TRANSACTION_NOT_FOUND\",\n  \"message\": \"The specified transaction was not found\",\n  \"details\": {\n    \"transactionId\": \"txn_invalid123\",\n    \"suggestion\": \"Verify the transaction ID and try again\"\n  },\n  \"code\": \"RESOURCE_NOT_FOUND\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-2cc75c4f-9a07-4191-a9ca-1052cea91261"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-96e84834-87cc-463d-94d8-18676f87ef29"
             },
             {
-              "id": "158a5d1e-4180-4d54-a150-9a4a21c12dcf",
+              "id": "1f80cad0-6a8b-428b-b2c3-f620323e9ff2",
               "name": "Conflict - Refund already exists or transaction state conflict",
               "originalRequest": {
                 "method": "POST",
@@ -1337,12 +1337,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"DUPLICATE_REFUND\",\n  \"message\": \"A refund with the same parameters already exists for this transaction\",\n  \"details\": {\n    \"transactionId\": \"txn_1234567890abcdef\",\n    \"existingRefundId\": \"rfnd_existing123\",\n    \"conflictType\": \"duplicate_request\"\n  },\n  \"code\": \"CONFLICT\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-158a5d1e-4180-4d54-a150-9a4a21c12dcf"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-1f80cad0-6a8b-428b-b2c3-f620323e9ff2"
             },
             {
-              "id": "c13a79dd-fe65-4a27-b610-dce76d182539",
+              "id": "024e03fb-e843-439c-a3c9-98f9c99d3e3c",
               "name": "Unprocessable entity - Business validation failed",
               "originalRequest": {
                 "method": "POST",
@@ -1392,12 +1392,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"TRANSACTION_TOO_OLD\",\n  \"message\": \"Refunds cannot be issued more than 180 days after the original transaction\",\n  \"details\": {\n    \"transactionId\": \"txn_1234567890abcdef\",\n    \"transactionDate\": \"2023-06-01T00:00:00Z\",\n    \"daysSinceTransaction\": 195,\n    \"maxDaysAllowed\": 180\n  },\n  \"code\": \"BUSINESS_RULE_VIOLATION\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-c13a79dd-fe65-4a27-b610-dce76d182539"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-024e03fb-e843-439c-a3c9-98f9c99d3e3c"
             },
             {
-              "id": "d98662e1-fe08-4aa2-b922-999fb25556d5",
+              "id": "896fb4df-04c5-4f2b-8873-ca1b549fc772",
               "name": "Too many requests - Rate limit exceeded",
               "originalRequest": {
                 "method": "POST",
@@ -1447,12 +1447,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"RATE_LIMIT_EXCEEDED\",\n  \"message\": \"Rate limit exceeded. Please retry after the specified time\",\n  \"details\": {\n    \"limit\": 100,\n    \"window\": \"1 minute\",\n    \"retryAfter\": 45\n  },\n  \"code\": \"RATE_LIMIT_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-d98662e1-fe08-4aa2-b922-999fb25556d5"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-896fb4df-04c5-4f2b-8873-ca1b549fc772"
             },
             {
-              "id": "c3804b7e-2987-4942-b00c-a7da386b4728",
+              "id": "b394d38d-6adb-4828-82ce-7c73ec7ef1d5",
               "name": "Internal server error",
               "originalRequest": {
                 "method": "POST",
@@ -1502,12 +1502,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"INTERNAL_SERVER_ERROR\",\n  \"message\": \"An unexpected error occurred while processing the refund\",\n  \"details\": {\n    \"requestId\": \"req_abc123def456\",\n    \"suggestion\": \"Please retry the request. If the issue persists, contact support.\"\n  },\n  \"code\": \"SERVER_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-c3804b7e-2987-4942-b00c-a7da386b4728"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-b394d38d-6adb-4828-82ce-7c73ec7ef1d5"
             },
             {
-              "id": "914114c6-0fab-49c4-8b0a-b970be0f318e",
+              "id": "2bfcd167-634a-496a-b7d6-9e04097d727e",
               "name": "Service unavailable - Maintenance or overload",
               "originalRequest": {
                 "method": "POST",
@@ -1557,14 +1557,14 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"MAINTENANCE_MODE\",\n  \"message\": \"The service is currently under maintenance\",\n  \"details\": {\n    \"maintenanceWindow\": \"2024-01-15T02:00:00Z - 2024-01-15T04:00:00Z\",\n    \"estimatedCompletion\": \"2024-01-15T04:00:00Z\"\n  },\n  \"code\": \"SERVICE_UNAVAILABLE\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-914114c6-0fab-49c4-8b0a-b970be0f318e"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-2bfcd167-634a-496a-b7d6-9e04097d727e"
             }
           ],
-          "createdAt": "2026-11-19T06:13:11.000Z",
-          "updatedAt": "2026-11-19T06:13:11.000Z",
-          "uid": "60288577-b7ebf536-7f29-477a-905e-ac961c5b3843"
+          "createdAt": "2026-11-19T13:08:10.000Z",
+          "updatedAt": "2026-11-19T13:08:10.000Z",
+          "uid": "60288577-4d2a2cea-75ca-4519-9e4e-98fedbb05f0f"
         },
         {
           "name": "List refunds",
@@ -1579,7 +1579,7 @@
               }
             }
           ],
-          "id": "68c2514d-1431-466f-8f40-a376ee96b255",
+          "id": "126ad535-1d87-45d2-b1d6-44407a36c76e",
           "request": {
             "method": "GET",
             "header": [
@@ -1642,7 +1642,7 @@
           },
           "response": [
             {
-              "id": "2dfe3e4f-af83-4672-bb5f-d8c8df940629",
+              "id": "7073af9a-8f49-461f-bc2e-f3da6c2485ca",
               "name": "Successful response with refund list",
               "originalRequest": {
                 "method": "GET",
@@ -1720,12 +1720,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"refunds\": [\n    {\n      \"refundId\": \"rfnd_abc123def456\",\n      \"transactionId\": \"txn_1234567890abcdef\",\n      \"status\": \"completed\",\n      \"amount\": 5000,\n      \"currency\": \"USD\",\n      \"refundAmount\": 5000,\n      \"refundCurrency\": \"USD\",\n      \"reason\": \"Customer requested refund\",\n      \"createdAt\": \"2024-01-15T10:30:00Z\",\n      \"completedAt\": \"2024-01-15T14:25:00Z\",\n      \"links\": {\n        \"self\": \"/refunds/rfnd_abc123def456\"\n      }\n    },\n    {\n      \"refundId\": \"rfnd_xyz789ghi012\",\n      \"transactionId\": \"txn_0987654321fedcba\",\n      \"status\": \"pending\",\n      \"amount\": 5000,\n      \"currency\": \"USD\",\n      \"refundAmount\": 2500,\n      \"refundCurrency\": \"USD\",\n      \"reason\": \"Partial refund for damaged item\",\n      \"createdAt\": \"2024-01-15T11:00:00Z\",\n      \"links\": {\n        \"self\": \"/refunds/rfnd_xyz789ghi012\"\n      }\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"pageSize\": 20,\n    \"totalPages\": 3,\n    \"totalItems\": 47,\n    \"hasNext\": true,\n    \"hasPrevious\": false\n  }\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-2dfe3e4f-af83-4672-bb5f-d8c8df940629"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-7073af9a-8f49-461f-bc2e-f3da6c2485ca"
             },
             {
-              "id": "dd990182-dfc1-4625-922f-0d3db2bc9765",
+              "id": "8c3f1534-3bad-480e-b864-4bf7c60325fb",
               "name": "Bad request - Invalid input",
               "originalRequest": {
                 "method": "GET",
@@ -1803,12 +1803,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"VALIDATION_ERROR\",\n  \"message\": \"Invalid request parameters\",\n  \"details\": {\n    \"field\": \"transactionId\",\n    \"issue\": \"Invalid format\"\n  },\n  \"code\": \"VALIDATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-dd990182-dfc1-4625-922f-0d3db2bc9765"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-8c3f1534-3bad-480e-b864-4bf7c60325fb"
             },
             {
-              "id": "66a7a06f-8f4d-44cd-a860-d72fd52761f5",
+              "id": "cc85727d-d43d-4318-b844-4dfb2d8ab6e0",
               "name": "Unauthorized - Invalid or missing authentication",
               "originalRequest": {
                 "method": "GET",
@@ -1886,12 +1886,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"UNAUTHORIZED\",\n  \"message\": \"Authentication token is required\",\n  \"code\": \"AUTHENTICATION_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-66a7a06f-8f4d-44cd-a860-d72fd52761f5"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-cc85727d-d43d-4318-b844-4dfb2d8ab6e0"
             },
             {
-              "id": "de1205ed-326f-4920-a01b-1c83f10ff4ee",
+              "id": "b253b4bc-64c3-4ec8-b964-fb2f54a6cd09",
               "name": "Too many requests - Rate limit exceeded",
               "originalRequest": {
                 "method": "GET",
@@ -1969,12 +1969,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"RATE_LIMIT_EXCEEDED\",\n  \"message\": \"Rate limit exceeded. Please retry after the specified time\",\n  \"details\": {\n    \"limit\": 100,\n    \"window\": \"1 minute\",\n    \"retryAfter\": 45\n  },\n  \"code\": \"RATE_LIMIT_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-de1205ed-326f-4920-a01b-1c83f10ff4ee"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-b253b4bc-64c3-4ec8-b964-fb2f54a6cd09"
             },
             {
-              "id": "29d5d2ed-5fdb-410b-b302-5ad20e2f9653",
+              "id": "753eb603-ebea-4daa-a150-3c6c1e748a95",
               "name": "Internal server error",
               "originalRequest": {
                 "method": "GET",
@@ -2052,20 +2052,20 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"error\": \"INTERNAL_SERVER_ERROR\",\n  \"message\": \"An unexpected error occurred\",\n  \"details\": {\n    \"requestId\": \"req_abc123def456\"\n  },\n  \"code\": \"SERVER_ERROR\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-29d5d2ed-5fdb-410b-b302-5ad20e2f9653"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-753eb603-ebea-4daa-a150-3c6c1e748a95"
             }
           ],
-          "createdAt": "2026-11-19T06:13:11.000Z",
-          "updatedAt": "2026-11-19T06:13:11.000Z",
-          "uid": "60288577-68c2514d-1431-466f-8f40-a376ee96b255"
+          "createdAt": "2026-11-19T13:08:10.000Z",
+          "updatedAt": "2026-11-19T13:08:10.000Z",
+          "uid": "60288577-126ad535-1d87-45d2-b1d6-44407a36c76e"
         }
       ],
-      "id": "1c848b24-b2ef-44b7-b5ea-a0358434595b",
-      "createdAt": "2026-11-19T06:13:11.000Z",
-      "updatedAt": "2026-11-19T06:13:11.000Z",
-      "uid": "60288577-1c848b24-b2ef-44b7-b5ea-a0358434595b"
+      "id": "37a367b4-a0f4-4862-9135-2b6c0e2f0479",
+      "createdAt": "2026-11-19T13:08:10.000Z",
+      "updatedAt": "2026-11-19T13:08:10.000Z",
+      "uid": "60288577-37a367b4-a0f4-4862-9135-2b6c0e2f0479"
     },
     {
       "name": "health",
@@ -2083,7 +2083,7 @@
               }
             }
           ],
-          "id": "79cbc448-2200-4da4-a2c7-e0d679a3f6f9",
+          "id": "686b3d27-ee75-4839-8b54-e0777688e292",
           "request": {
             "method": "GET",
             "header": [
@@ -2114,7 +2114,7 @@
           },
           "response": [
             {
-              "id": "5af1b3ad-4474-4efc-ba33-0f9a67a6631a",
+              "id": "ddceea56-3e97-4f87-9df6-e4c332c19675",
               "name": "Service is healthy",
               "originalRequest": {
                 "method": "GET",
@@ -2160,12 +2160,12 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"status\": \"healthy\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"version\": \"2.1.0\",\n  \"services\": {\n    \"database\": \"operational\",\n    \"paymentGateway\": \"operational\",\n    \"notificationService\": \"operational\"\n  }\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-5af1b3ad-4474-4efc-ba33-0f9a67a6631a"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-ddceea56-3e97-4f87-9df6-e4c332c19675"
             },
             {
-              "id": "511b43ca-8401-4a85-b634-02b905507704",
+              "id": "1354c4ab-bd70-4a8f-b126-1f3baf770e6c",
               "name": "Service is unhealthy",
               "originalRequest": {
                 "method": "GET",
@@ -2211,20 +2211,20 @@
               "cookie": [],
               "responseTime": null,
               "body": "{\n  \"status\": \"unhealthy\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"version\": \"2.1.0\",\n  \"services\": {\n    \"database\": \"down\",\n    \"paymentGateway\": \"down\",\n    \"notificationService\": \"operational\"\n  }\n}",
-              "createdAt": "2026-11-19T06:13:11.000Z",
-              "updatedAt": "2026-11-19T06:13:11.000Z",
-              "uid": "60288577-511b43ca-8401-4a85-b634-02b905507704"
+              "createdAt": "2026-11-19T13:08:10.000Z",
+              "updatedAt": "2026-11-19T13:08:10.000Z",
+              "uid": "60288577-1354c4ab-bd70-4a8f-b126-1f3baf770e6c"
             }
           ],
-          "createdAt": "2026-11-19T06:13:11.000Z",
-          "updatedAt": "2026-11-19T06:13:11.000Z",
-          "uid": "60288577-79cbc448-2200-4da4-a2c7-e0d679a3f6f9"
+          "createdAt": "2026-11-19T13:08:10.000Z",
+          "updatedAt": "2026-11-19T13:08:10.000Z",
+          "uid": "60288577-686b3d27-ee75-4839-8b54-e0777688e292"
         }
       ],
-      "id": "83240f7c-df89-476b-8349-4dcb295fd4b1",
-      "createdAt": "2026-11-19T06:13:11.000Z",
-      "updatedAt": "2026-11-19T06:13:11.000Z",
-      "uid": "60288577-83240f7c-df89-476b-8349-4dcb295fd4b1"
+      "id": "b761e8bd-a01b-400d-a8c2-d9a4ebcc840f",
+      "createdAt": "2026-11-19T13:08:10.000Z",
+      "updatedAt": "2026-11-19T13:08:10.000Z",
+      "uid": "60288577-b761e8bd-a01b-400d-a8c2-d9a4ebcc840f"
     }
   ],
   "auth": {
