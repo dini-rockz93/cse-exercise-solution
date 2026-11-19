@@ -331,8 +331,9 @@ environment, never prod:
     the action no longer matched the edited monitor and **created a second one on prod**,
     which ran once (harmless here: the host doesn't resolve; at the customer it would send
     write calls to production). Fix: the monitor to keep is pinned in
-    `vars.POSTMAN_MONITOR_ID`, which onboarding passes as `monitor-id`, and the duplicate
-    was deleted. The lasting fix is a reachable non-production environment, so no
+    `vars.POSTMAN_MONITOR_ID`, which onboarding passes as `monitor-id`. The duplicate
+    (`1f1e41a4…`) is kept as evidence: disabled, unscheduled, and no longer touched by
+    onboarding. The lasting fix is a reachable non-production environment, so no
     hand-edit is needed.
   - It stays **unscheduled**. Scheduling it against a mock would report "healthy"
     without checking the real API, and against prod it would create refunds (the Smoke

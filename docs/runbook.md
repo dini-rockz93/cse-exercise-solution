@@ -68,7 +68,7 @@ variables or contents means its fine-grained permissions are read-only (see §4)
 
 | Change made by hand | Risk on rerun | What to do |
 |---|---|---|
-| Monitor re-pointed from `prod` to the `payment-refund-api - mock` environment | **Observed 19 Nov:** the next run no longer matched it and **created a second monitor on prod**, which ran once. The state file doesn't record monitors | Pin the monitor to keep: `gh variable set POSTMAN_MONITOR_ID --body <id>` (onboarding passes it as `monitor-id`). Delete any duplicate. After every run, check the monitor count and environment. Keep monitors **unscheduled** until they target a reachable, non-production environment |
+| Monitor re-pointed from `prod` to the `payment-refund-api - mock` environment | **Observed 19 Nov:** the next run no longer matched it and **created a second monitor on prod**, which ran once. The state file doesn't record monitors | Pin the monitor to keep: `gh variable set POSTMAN_MONITOR_ID --body <id>` (onboarding passes it as `monitor-id`). Delete a duplicate, or keep it disabled and note it in the decision log (the pilot keeps `1f1e41a4…` as evidence). After every run, check the monitor count and environment. Keep monitors **unscheduled** until they target a reachable, non-production environment |
 | Environment value edited in the app | Local-only values are invisible to monitors and CI | Use **☁ Share** (shared value) for anything a monitor or CI needs; never share secrets this way |
 
 Record every hand-edit in a decision log. If something has to survive reruns, it should be
