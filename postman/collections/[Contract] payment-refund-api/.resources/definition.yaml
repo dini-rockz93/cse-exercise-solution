@@ -6086,7 +6086,7 @@ scripts:
       }
     language: text/javascript
 auth:
-  - id: ce1b23f8-c3d6-4e83-9fea-c929c638992a
+  - id: a604b12d-f967-495a-b5f2-47437b77ec04
     type: oauth2
     name: oauth2 auth
     credentials:

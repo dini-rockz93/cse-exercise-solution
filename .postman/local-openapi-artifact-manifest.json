@@ -6,21 +6,21 @@
       "collectionPath": "postman/collections/payment-refund-api",
       "cloudId": "60288577-955727f4-c379-5b26-9818-7a8f9dbe8c23",
       "payloadDigest": "eeeaae21db382d72c287ff2e3d70a064f110c0d237835a188eba017beeced679",
-      "artifactDigest": "cceb1898d95325b1f410e1ffd3cbd01f71251b0d16686e695fcf55e159970007"
+      "artifactDigest": "9221a2b4536beabc0ed002ad956f48fa7bfe8a8fc30eafe0643d973fb6739d3a"
     },
     {
       "role": "smoke",
       "collectionPath": "postman/collections/[Smoke] payment-refund-api",
       "cloudId": "60288577-4288f1e5-8237-517b-b896-91695890cc99",
       "payloadDigest": "75cf63592a9aeef44298d8e632a78d0dacc4f8ae7807fe94bd216e080088cc6a",
-      "artifactDigest": "ee77396c4d56984215eeeb92060674e2a47deeba66da08c080f5319bc8992e06"
+      "artifactDigest": "7589f3b39d527b113d887795c3f884365e5748299d747af05764e14a366567fb"
     },
     {
       "role": "contract",
       "collectionPath": "postman/collections/[Contract] payment-refund-api",
       "cloudId": "60288577-de76c48d-68fe-5aa0-b375-a594719ede0b",
       "payloadDigest": "7f14b239d2ef7a08bfe24a848d2c932e270856d11cb687fe9afb1df6bc62c1e9",
-      "artifactDigest": "c9ddd6e89422c70177bd771df67e7e33ebec253769138008f91b0b38674252cb"
+      "artifactDigest": "59b5a4528757214a64236481eb6911f3a544ecdcc47b6fb256622c0aadf462fe"
     }
   ]
 }
