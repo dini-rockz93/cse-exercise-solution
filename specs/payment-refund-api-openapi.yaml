@@ -73,7 +73,6 @@ paths:
                 summary: Full refund example
                 value:
                   transactionId: "txn_1234567890abcdef"
-                  amount: null
                   reason: "Customer requested refund"
                   notifyCustomer: true
                   metadata:
@@ -707,6 +706,7 @@ paths:
         Returns the health status of the refund service. Useful for monitoring
         and load balancer health checks.
       operationId: healthCheck
+      security: []
       responses:
         '200':
           description: Service is healthy
