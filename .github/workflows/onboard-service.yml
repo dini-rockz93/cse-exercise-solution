@@ -107,7 +107,10 @@ jobs:
           baseline-collection-id: ${{ fromJSON(inputs.existing_ids_json || '{}').baseline_collection_id }}
           smoke-collection-id: ${{ fromJSON(inputs.existing_ids_json || '{}').smoke_collection_id }}
           contract-collection-id: ${{ fromJSON(inputs.existing_ids_json || '{}').contract_collection_id }}
-          monitor-id: ${{ fromJSON(inputs.existing_ids_json || '{}').monitor_id }}
+          # The state file doesn't record monitors, and the action finds one by matching,
+          # so a hand-edited monitor stops matching and a duplicate gets created (seen on
+          # 19 Nov). Pin the monitor to keep in vars.POSTMAN_MONITOR_ID.
+          monitor-id: ${{ fromJSON(inputs.existing_ids_json || '{}').monitor_id || vars.POSTMAN_MONITOR_ID }}
           mock-url: ${{ fromJSON(inputs.existing_ids_json || '{}').mock_url }}
           postman-region: us
           postman-api-key: ${{ secrets.POSTMAN_API_KEY }}

@@ -326,8 +326,14 @@ environment, never prod:
   The `CI_TARGET=mock` switch only affects GitHub CI, not the monitor. For the demo I
   pointed it at a `payment-refund-api - mock` environment, and it now shows **17 of 18**,
   the same `POST /refunds` 503 as CI. Two caveats:
-  - It's a hand-edit outside the pipeline, so a later onboarding run may reset the
-    monitor to prod. That's config drift, and the real fix is a reachable environment.
+  - It's a hand-edit outside the pipeline, and it drifted: on the 19 Nov rerun
+    ([44530414745](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44530414745))
+    the action no longer matched the edited monitor and **created a second one on prod**,
+    which ran once (harmless here: the host doesn't resolve; at the customer it would send
+    write calls to production). Fix: the monitor to keep is pinned in
+    `vars.POSTMAN_MONITOR_ID`, which onboarding passes as `monitor-id`, and the duplicate
+    was deleted. The lasting fix is a reachable non-production environment, so no
+    hand-edit is needed.
   - It stays **unscheduled**. Scheduling it against a mock would report "healthy"
     without checking the real API, and against prod it would create refunds (the Smoke
     collection makes write calls). A scheduled monitor needs a non-production target, or
