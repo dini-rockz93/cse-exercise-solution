@@ -1,0 +1,109 @@
+name: Export Collections (JSON)
+
+# Exports the service's collections and environments as importable Postman v2.1 JSON
+# into postman/exports/<service>/, alongside the native YAML that repo-sync commits.
+# Every export is scanned for credentials and test-imported with the Postman CLI
+# before it is committed. Runs after a successful onboarding, or on demand.
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Onboard Service"]
+    types: [completed]
+
+concurrency:
+  group: export-collections
+  cancel-in-progress: false
+
+jobs:
+  export:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      SERVICE_NAME: ${{ vars.SERVICE_NAME || 'payment-refund-api' }}
+      POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+      POSTMAN_MOCK_URL: ${{ vars.POSTMAN_MOCK_URL }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Resolve IDs for this service
+        run: |
+          ruby <<'RUBY'
+          require 'yaml'
+          service = ENV.fetch('SERVICE_NAME')
+          cloud = (YAML.load_file('.postman/resources.yaml') || {}).fetch('canonical', {})
+          cols = cloud.fetch('collections', {}); envs = cloud.fetch('environments', {})
+          pick = ->(map, name) { map.find { |p, _| File.basename(p) == name }&.last }
+          out = {
+            'baseline' => pick.(cols, service),
+            'smoke'    => pick.(cols, "[Smoke] #{service}"),
+            'contract' => pick.(cols, "[Contract] #{service}"),
+          }
+          abort("Missing collection IDs for #{service}: #{out.select { |_, v| v.nil? }.keys}") if out.values.any?(&:nil?)
+          envmap = envs.each_with_object({}) do |(p, id), h|
+            m = File.basename(p).match(/\A#{Regexp.escape(service)} - ([a-z0-9-]+)\.environment\.yaml\z/)
+            h[m[1]] = id if m
+          end
+          File.write(ENV['RUNNER_TEMP'] + '/ids.yaml', { 'collections' => out, 'environments' => envmap }.to_yaml)
+          RUBY
+          cat "$RUNNER_TEMP/ids.yaml"
+
+      - name: Export from the Postman API
+        run: |
+          set -euo pipefail
+          dir="postman/exports/$SERVICE_NAME"; mkdir -p "$dir"
+          api() { curl -fsS -H "X-Api-Key: $POSTMAN_API_KEY" "https://api.getpostman.com/$1"; }
+          for kind in baseline smoke contract; do
+            uid=$(ruby -ryaml -e "puts YAML.load_file(ENV['RUNNER_TEMP']+'/ids.yaml')['collections']['$kind']")
+            api "collections/$uid" | jq '.collection' > "$dir/$kind.postman_collection.json"
+          done
+          ruby -ryaml -e "YAML.load_file(ENV['RUNNER_TEMP']+'/ids.yaml')['environments'].each { |k, v| puts \"#{k} #{v}\" }" |
+          while read -r slug uid; do
+            # Secret-typed variables are blanked so no value can leave Postman via Git.
+            api "environments/$uid" | jq '.environment | del(.id, .owner, .createdAt, .updatedAt, .isPublic)
+              | .values |= map(if .type == "secret" then .value = "" else . end)' > "$dir/env-$slug.postman_environment.json"
+          done
+          ls -la "$dir"
+
+      - name: Scan exports for credentials
+        run: |
+          set -euo pipefail
+          dir="postman/exports/$SERVICE_NAME"
+          if grep -RInE 'PMAK-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}' "$dir"; then
+            echo "::error::Possible API key or JWT in exports"; exit 1
+          fi
+          for f in "$dir"/*.json; do
+            hits=$(jq '[.. | objects | select((.key? // "" | tostring | test("(?i)(secret|token|password|api[-_]?key|client[-_]?secret)"))
+                       and ((.value // "") | tostring | length > 0)
+                       and ((.value // "") | tostring | startswith("{{") | not))] | length' "$f")
+            [ "$hits" = "0" ] || { echo "::error::$f has $hits credential-like values"; jq -c '[.. | objects | select(.key? // "" | tostring | test("(?i)(secret|token|password|api[-_]?key)"))] ' "$f"; exit 1; }
+          done
+          echo "No credentials found in $dir"
+
+      - name: Test-import the JSON with the Postman CLI
+        run: |
+          set -euo pipefail
+          curl -fsSL https://dl-cli.pstmn.io/install/unix.sh | sh
+          dir="postman/exports/$SERVICE_NAME"
+          for kind in baseline smoke contract; do
+            f="$dir/$kind.postman_collection.json"
+            jq -e '.info.schema | test("v2\\.1\\.0")' "$f" >/dev/null || { echo "::error::$f is not a v2.1 collection"; exit 1; }
+            # Run the FILE (not the cloud copy) against the mock. Test results are not the
+            # point here; the CLI must parse the file and execute its requests.
+            out=$(postman collection run "$f" -e "$dir/env-dev.postman_environment.json" --env-var "baseUrl=$POSTMAN_MOCK_URL" 2>&1 || true)
+            echo "$out" | grep -E '^\s*\|\s+requests\s+\|' || { echo "$out" | tail -20; echo "::error::$f did not import/run"; exit 1; }
+            echo "$kind: imported and executed from JSON" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Commit exports
+        run: |
+          git add "postman/exports/$SERVICE_NAME"
+          if git diff --cached --quiet; then echo "No changes to exports"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore: export $SERVICE_NAME collections and environments as JSON"
+          git push

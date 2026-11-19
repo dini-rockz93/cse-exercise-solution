@@ -1,18 +1,21 @@
 name: Onboard Service
 
-# Reusable onboarding entrypoint: one dispatch per service.
+# Onboarding entrypoint: one dispatch per service, one service per repo (pilot scope).
 # Replaces starter-assets/ (which passed spec-path as spec-url, pinned @v0,
 # and used GITHUB_TOKEN, which cannot push generated workflow files).
+#
+# Input handling: dispatch inputs are passed to shell steps through environment
+# variables (never interpolated into scripts) and validated before anything is created.
 
 on:
   workflow_dispatch:
     inputs:
       project_name:
-        description: Service project name
+        description: Service project name (lowercase letters, digits, hyphens)
         required: true
         default: payment-refund-api
       spec_path:
-        description: Repo-relative path to the OpenAPI spec
+        description: Spec file under specs/ (e.g. specs/payment-refund-api-openapi.yaml)
         required: true
         default: specs/payment-refund-api-openapi.yaml
       domain:
@@ -20,13 +23,17 @@ on:
         required: false
         default: payments
       environments_json:
-        description: JSON array of environment slugs
+        description: JSON array of environment slugs (must match the URL map keys)
         required: true
         default: '["dev","qa","uat","prod"]'
       env_runtime_urls_json:
-        description: JSON map of environment slug to base URL
+        description: JSON map of environment slug to https base URL
         required: true
         default: '{"dev":"https://api-dev.payments.example.com/v2","qa":"https://api-qa.payments.example.com/v2","uat":"https://api-uat.payments.example.com/v2","prod":"https://api.payments.example.com/v2"}'
+      existing_ids_json:
+        description: 'Recovery only (see docs/runbook.md): JSON of existing asset IDs, e.g. {"workspace_id":"...","spec_id":"..."}'
+        required: false
+        default: ''
 
 # One run per service at a time, so parallel dispatches can't create duplicate workspaces.
 concurrency:
@@ -39,64 +46,110 @@ jobs:
     permissions:
       contents: write
       actions: write
+    env:
+      PROJECT_NAME: ${{ inputs.project_name }}
+      SPEC_PATH: ${{ inputs.spec_path }}
+      ENVIRONMENTS_JSON: ${{ inputs.environments_json }}
+      ENV_URLS_JSON: ${{ inputs.env_runtime_urls_json }}
+      EXISTING_IDS_JSON: ${{ inputs.existing_ids_json }}
+      SPEC_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${{ inputs.spec_path }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
 
-      - name: Preflight
-        env:
-          SPEC_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${{ inputs.spec_path }}
+      - name: Preflight (validate inputs before creating anything)
         run: |
-          test -f "${{ inputs.spec_path }}" || { echo "::error::Spec not found at ${{ inputs.spec_path }}"; exit 1; }
-          curl -fsS "$SPEC_URL" -o "$RUNNER_TEMP/spec-check.yaml" || { echo "::error::Spec URL not fetchable: $SPEC_URL"; exit 1; }
-          grep -q '^openapi:' "$RUNNER_TEMP/spec-check.yaml" || { echo "::error::Spec URL did not return an OpenAPI document: $SPEC_URL"; exit 1; }
-          echo '${{ inputs.environments_json }}' | jq -e 'type=="array"' >/dev/null
-          echo '${{ inputs.env_runtime_urls_json }}' | jq -e 'type=="object"' >/dev/null
-          echo "Preflight OK: $SPEC_URL"
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+
+          [[ "$PROJECT_NAME" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || fail "project_name must be lowercase letters, digits and hyphens"
+
+          [[ "$SPEC_PATH" =~ ^specs/[A-Za-z0-9._-]+\.ya?ml$ ]] || fail "spec_path must be a .yaml/.yml file directly under specs/"
+          real="$(realpath -e -- "$SPEC_PATH" 2>/dev/null)" || fail "Spec not found at $SPEC_PATH"
+          [[ "$real" == "$GITHUB_WORKSPACE/specs/"* ]] || fail "spec_path resolves outside specs/"
+          grep -q '^openapi:' "$SPEC_PATH" || fail "$SPEC_PATH is not an OpenAPI document"
+          curl -fsS "$SPEC_URL" -o "$RUNNER_TEMP/spec-check.yaml" || fail "Spec URL not fetchable: $SPEC_URL"
+
+          jq -e 'type=="array" and length>0 and all(.[]; type=="string" and test("^[a-z0-9-]{1,32}$"))' <<<"$ENVIRONMENTS_JSON" >/dev/null \
+            || fail "environments_json must be a non-empty array of slugs"
+          jq -e 'type=="object" and all(.[]; type=="string" and startswith("https://"))' <<<"$ENV_URLS_JSON" >/dev/null \
+            || fail "env_runtime_urls_json must map each slug to an https URL"
+          jq -ne --argjson e "$ENVIRONMENTS_JSON" --argjson u "$ENV_URLS_JSON" '($e|sort) == ($u|keys|sort)' >/dev/null \
+            || fail "environments_json and env_runtime_urls_json keys must match exactly"
+
+          if [ -n "$EXISTING_IDS_JSON" ]; then
+            jq -e 'type=="object" and ((keys - ["workspace_id","spec_id","baseline_collection_id","smoke_collection_id","contract_collection_id","monitor_id","mock_url"]) == [])' \
+              <<<"$EXISTING_IDS_JSON" >/dev/null || fail "existing_ids_json has unknown keys (see docs/runbook.md)"
+            echo "::notice::Recovery run: reusing the asset IDs passed in existing_ids_json"
+          fi
+          echo "Preflight OK: $PROJECT_NAME from $SPEC_URL"
 
       - name: Mint Postman access token
         id: postman-token
-        uses: postman-cs/postman-resolve-service-token-action@v2
+        uses: postman-cs/postman-resolve-service-token-action@bea2e7cdeb7b7db37712aed65859368d30ca74f4 # v2.2.6
         with:
           postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
           postman-region: us
 
       - name: Onboard service into Postman
         id: onboard
-        uses: postman-cs/postman-api-onboarding-action@v4.1.0
+        uses: postman-cs/postman-api-onboarding-action@4c071c10bbd612dabbbf7069f3ce38e9d955ea2e # v4.1.0
         with:
           project-name: ${{ inputs.project_name }}
-          spec-url: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${{ inputs.spec_path }}
+          spec-url: ${{ env.SPEC_URL }}
           spec-path: ${{ inputs.spec_path }}
           domain: ${{ inputs.domain }}
           environments-json: ${{ inputs.environments_json }}
           env-runtime-urls-json: ${{ inputs.env_runtime_urls_json }}
+          # Recovery inputs: empty unless existing_ids_json is passed (docs/runbook.md)
+          workspace-id: ${{ fromJSON(inputs.existing_ids_json || '{}').workspace_id }}
+          spec-id: ${{ fromJSON(inputs.existing_ids_json || '{}').spec_id }}
+          baseline-collection-id: ${{ fromJSON(inputs.existing_ids_json || '{}').baseline_collection_id }}
+          smoke-collection-id: ${{ fromJSON(inputs.existing_ids_json || '{}').smoke_collection_id }}
+          contract-collection-id: ${{ fromJSON(inputs.existing_ids_json || '{}').contract_collection_id }}
+          monitor-id: ${{ fromJSON(inputs.existing_ids_json || '{}').monitor_id }}
+          mock-url: ${{ fromJSON(inputs.existing_ids_json || '{}').mock_url }}
           postman-region: us
           postman-api-key: ${{ secrets.POSTMAN_API_KEY }}
-          postman-access-token: ${{ steps.postman-token.outputs.token || secrets.POSTMAN_ACCESS_TOKEN }}
+          postman-access-token: ${{ steps.postman-token.outputs.token }}
           postman-team-id: ${{ steps.postman-token.outputs.team-id }}
           credential-preflight: enforce
-          # ci.yml was generated on the first run and is now owned by this repo
-          # (it has a mock/real target switch). Don't let reruns overwrite it.
+          # ci.yml is owned by this repo (explicit, non-production test target).
           generate-ci-workflow: 'false'
+          # The built-in run targets the first environment (prod here) and the smoke
+          # collection makes write calls, so testing is left to ci.yml's explicit target.
+          skip-built-in-tests: 'true'
           github-token: ${{ secrets.GH_PAT }}
 
       - name: Summary
         if: always()
+        env:
+          WORKSPACE_URL: ${{ steps.onboard.outputs.workspace-url }}
+          SPEC_ID: ${{ steps.onboard.outputs.spec-id }}
+          MOCK_URL: ${{ steps.onboard.outputs.mock-url }}
+          MONITOR_ID: ${{ steps.onboard.outputs.monitor-id }}
+          COMMIT_SHA: ${{ steps.onboard.outputs.commit-sha }}
+          BOOTSTRAP: ${{ steps.onboard.outputs.bootstrap-outcome }}
+          REPO_SYNC: ${{ steps.onboard.outputs.repo-sync-outcome }}
+          COLLECTIONS: ${{ steps.onboard.outputs.collections-json }}
         run: |
           {
-            echo "## Onboarding: ${{ inputs.project_name }}"
-            echo "- Workspace: ${{ steps.onboard.outputs.workspace-url }}"
-            echo "- Spec ID: ${{ steps.onboard.outputs.spec-id }}"
-            echo "- Mock URL: ${{ steps.onboard.outputs.mock-url }}"
-            echo "- Monitor ID: ${{ steps.onboard.outputs.monitor-id }}"
-            echo "- Commit: ${{ steps.onboard.outputs.commit-sha }}"
-            echo "- Phases: bootstrap=${{ steps.onboard.outputs.bootstrap-outcome }}, repo-sync=${{ steps.onboard.outputs.repo-sync-outcome }}"
+            echo "## Onboarding: $PROJECT_NAME"
+            echo "- Workspace: ${WORKSPACE_URL:-n/a}"
+            echo "- Spec ID: ${SPEC_ID:-n/a}"
+            echo "- Mock URL: ${MOCK_URL:-n/a}"
+            echo "- Monitor ID: ${MONITOR_ID:-n/a} (created unscheduled; targets the first environment until re-pointed)"
+            echo "- Commit: ${COMMIT_SHA:-none}"
+            echo "- Phases: bootstrap=${BOOTSTRAP:-n/a}, repo-sync=${REPO_SYNC:-n/a}"
+            if [ "${BOOTSTRAP:-}" = "success" ] && [ "${REPO_SYNC:-}" != "success" ]; then
+              echo ""
+              echo "> **Partial success:** assets exist in Postman but state may not be committed. Follow docs/runbook.md before retrying."
+            fi
             echo ""
             echo "### Collections"
             echo '```json'
-            echo '${{ steps.onboard.outputs.collections-json }}'
+            printf '%s\n' "${COLLECTIONS:-n/a}"
             echo '```'
             echo ""
-            echo "_Built-in smoke/contract runs are warning-only; check the postman-test-results artifact._"
+            echo "_Tests run in ci.yml against its explicit target (mock or dev), not here._"
           } >> "$GITHUB_STEP_SUMMARY"

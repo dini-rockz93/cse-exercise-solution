@@ -1,19 +1,36 @@
 # API Onboarding Automation: Postman CSE Exercise
 
-This repo turns an OpenAPI spec into a cataloged, testable API in Postman with a single
-workflow run. The working implementation onboards the **payment-refund** service. The
-**claims** service is covered as a design analysis in
-[docs/adaptation-claims.md](docs/adaptation-claims.md).
+One workflow run turns an OpenAPI spec into an onboarded Postman workspace: spec in
+Spec Hub, generated baseline, smoke and contract collections, environments, a mock and a
+monitor. The working implementation onboards the **payment-refund** service, one
+service per repo. **Claims** is a proposed GitLab adaptation, not run.
 
-| | |
-|---|---|
-| Postman workspace | [payment-refund-api](https://go.postman.co/workspace/a254fb2a-b82a-4f97-8d95-99cdeadb5be3) |
-| First onboarding run | [44354380990](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44354380990): created everything, 1m 34s |
-| Rerun | [44356679969](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44356679969): reused everything, 47s |
-| Secrets preflight | [44354145064](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44354145064) |
+## Start here: five-minute review
 
-> **Drafting note:** this README and the adaptation analysis were drafted with Claude
-> from the build session, then reviewed and edited by me. See [How I used AI](#how-i-used-ai).
+| What | Where | What it shows |
+|---|---|---|
+| **Deck** | [docs/deck.pptx](docs/deck.pptx) | The presentation (also as PDF on request) |
+| **Latest onboarding run** | [44470533684](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44470533684) | Re-run after the spec fix: 40 s workflow elapsed time, assets updated in place |
+| First run / rerun | [44354380990](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44354380990) (1m 34s) · [44356679969](https://github.com/dini-rockz93/cse-exercise-solution/actions/runs/44356679969) (47 s) | First run created the assets; the rerun reused the observed asset IDs |
+| **Importable JSON exports** | [postman/exports/payment-refund-api/](postman/exports/payment-refund-api/) | Baseline, smoke, contract collections + environments (v2.1), credential-scanned and test-imported by [Export Collections](.github/workflows/export-collections.yml) |
+| Native exports | [postman/collections/](postman/collections/) | Postman v3 multi-file YAML, committed by repo-sync |
+| Postman workspace | [payment-refund-api](https://go.postman.co/workspace/a254fb2a-b82a-4f97-8d95-99cdeadb5be3) | Needs an invite to the trial team; the [screenshots](#screenshots) show the same assets |
+| Workflows | [onboard-service.yml](.github/workflows/onboard-service.yml) · [ci.yml](.github/workflows/ci.yml) | Onboarding, and tests against an explicit non-production target |
+| Second service | [docs/adaptation-claims.md](docs/adaptation-claims.md) | Claims on GitLab CI: proposal |
+| Plan | [docs/engagement-plan.md](docs/engagement-plan.md) · [docs/runbook.md](docs/runbook.md) | Value, 60/90-day rollout, handoff; operating and recovery |
+
+**Expected test outcomes** (CI, `CI_TARGET=mock`; the job summary reports target,
+assertion failures and request errors):
+
+| Check | Expected | Why |
+|---|---|---|
+| Mock happy path: `POST /refunds` with `x-mock-response-code: 201` | **Pass (blocking)** | Proves the success path and response shape |
+| Smoke (generic) | 17/18, advisory | The mock may return any of 9 examples for `POST /refunds` (here: 503) |
+| Contract | 5 failures, advisory | All "request carries credentials": no CI identity yet. Authenticated runtime validation is pending |
+| Production | Never targeted | The smoke collection makes write calls |
+
+> **Drafting note:** this README and the docs were drafted with Claude from the build
+> session, then reviewed and edited by me. See [How I used AI](#how-i-used-ai).
 
 ---
 
@@ -26,9 +43,11 @@ From `specs/payment-refund-api-openapi.yaml`, the [Onboard Service](.github/work
 - **Three collections:** baseline (`payment-refund-api`), `[Smoke]` and `[Contract]`
 - **Four environments** (dev, qa, uat, prod), each with the correct `baseUrl` from the spec's `servers`
 - **A mock server** that serves the spec's examples (base path includes `/v2`)
-- **A smoke monitor**, created paused, triggered once per run, pointed at prod (re-pointed to the mock for the demo)
-- **A commit back to this repo** with collection exports (`postman/`), the state file
-  (`.postman/resources.yaml`) and a CI workflow (`.github/workflows/ci.yml`)
+- **A smoke monitor**, created unscheduled and pointed at the first environment (prod).
+  For the demo it was **manually** re-pointed to a mock environment and left unscheduled
+- **A commit back to this repo** with native collection exports (`postman/`), the state
+  file (`.postman/resources.yaml`) and, on the first run only, a CI workflow
+- **JSON exports** (v2.1) written by a follow-up workflow after each successful onboarding
 
 | Run summary (GitHub) | Resulting workspace (Postman) |
 |---|---|
@@ -37,22 +56,28 @@ From `specs/payment-refund-api-openapi.yaml`, the [Onboard Service](.github/work
 ## How it works
 
 ```
-workflow_dispatch (service name, spec path, environments, URLs)
+workflow_dispatch (service name, spec path, environments, URLs [, recovery IDs])
    │
-   ├─ Preflight ............ spec exists, raw URL fetchable, JSON inputs valid
-   ├─ Mint access token .... postman-resolve-service-token-action (from the service-account key)
-   └─ Onboard .............. postman-api-onboarding-action@v4.1.0
+   ├─ Preflight ............ inputs validated via env vars: name, spec under specs/,
+   │                         environments == URL map keys, https URLs, recovery keys
+   ├─ Mint access token .... postman-resolve-service-token-action (pinned SHA, v2.2.6)
+   └─ Onboard .............. postman-api-onboarding-action (pinned SHA, v4.1.0)
          ├─ bootstrap ...... workspace, Spec Hub upload, baseline/smoke/contract collections
-         ├─ repo-sync ...... environments, mock, monitor, exports, state file, commit + push
-         └─ built-in tests . smoke + contract via Postman CLI (warning-only, JUnit artifact)
+         └─ repo-sync ...... environments, mock, monitor, native exports, state file, commit
+         (built-in tests skipped: they target the first environment, prod)
+   │
+   └─► export-collections.yml . v2.1 JSON exports, credential scan, test import, commit
 
-push to main ──► ci.yml ── smoke + contract tests (against the mock while CI_TARGET=mock)
+push to main ──► ci.yml ── explicit target (mock | dev, never prod)
+                           mock happy path (blocking) · smoke + contract · job summary
 ```
 
 **On rerun**, bootstrap reads `.postman/resources.yaml` and updates the existing assets in
-place. The rerun log shows *"Using existing workspace"*, *"Deep-updated existing
-baseline/smoke/contract collection"* and *"Discovered existing mock … existing
-monitor"*, with the same IDs as run 1 and no duplicates.
+place. Successful reruns reused the observed asset IDs: the logs show *"Using existing
+workspace"*, *"Deep-updated existing baseline/smoke/contract collection"* and
+*"Discovered existing mock … existing monitor"*, with no duplicates. A run that fails
+**after** creating assets but **before** committing state needs the recovery steps in
+[docs/runbook.md](docs/runbook.md#1-recovery-bootstrap-succeeded-repo-sync-failed).
 
 ![Terminal: rerun dispatched from the CLI, then the mock answering GET /v2/refunds](docs/screenshots/15-terminal-rerun-and-mock.png)
 
@@ -65,8 +90,9 @@ directly. The starter had three problems:
 
 1. **`spec-url: ${{ inputs.spec-path }}`.** It passes a repo-relative path where an
    HTTPS URL is required.
-2. **It's pinned to `@v0`**, while the current release is `v4.1.0`. I pinned the
-   immutable `v4.1.0` tag for reproducibility.
+2. **It's pinned to `@v0`**, while the current release is `v4.1.0`. Both actions are now
+   pinned to a **commit SHA** (onboarding `4c071c1…` = v4.1.0, token `bea2e7c…` = v2.2.6),
+   because a tag can be moved and a SHA can't.
 3. **It writes with `github.token`.** The default token can't push changes under
    `.github/workflows/`, and repo-sync commits a generated `ci.yml`. I used a
    fine-grained PAT (`GH_PAT`).
@@ -78,10 +104,9 @@ directly is easier to read and debug.
 
 The brief suggests a `postman login` session token. That token expires and is tied to
 a person, so it fails silently later. I mint a fresh token per run from a
-**service-account** API key (`postman-resolve-service-token-action`). The
-`POSTMAN_ACCESS_TOKEN` secret is still wired as a fallback. `credential-preflight: enforce`
-makes the run fail *before* creating anything if the key and the token belong to
-different orgs.
+**service-account** API key (`postman-resolve-service-token-action`). There is no
+fallback token: if minting fails, the run fails. `credential-preflight: enforce` makes
+the run fail *before* creating anything if the key and the token belong to different orgs.
 
 ### Other choices
 
@@ -95,8 +120,16 @@ different orgs.
   secrets as Actions actually sees them. It's the first thing to run when onboarding a
   new repo.
 - **I own `ci.yml` after the first generation.** Onboarding now runs with
-  `generate-ci-workflow: 'false'`, otherwise every rerun would overwrite my changes (see
-  below).
+  `generate-ci-workflow: 'false'`, otherwise every rerun would overwrite my changes.
+- **Dispatch inputs never reach a shell as code.** They're passed through environment
+  variables, quoted, and validated: the spec must sit under `specs/`, the environment
+  list must match the URL map, and URLs must be https.
+- **Built-in tests are skipped** (`skip-built-in-tests`). They run against the first
+  environment, which is prod here, and the smoke collection creates refunds. Testing
+  happens in `ci.yml` against an explicit non-production target.
+- **One service per repo.** CI and exports resolve IDs for `vars.SERVICE_NAME` by exact
+  name, not "first match". Several services per repo would need the action's
+  `working-directory` mode and a per-service lookup.
 
 ## Universal vs per-service
 
@@ -107,9 +140,17 @@ different orgs.
 | State file, rerun-safe updates | `domain` |
 | CI test job structure | `environments_json`, e.g. `["dev","qa","uat","prod"]` |
 | Secrets and their scopes | `env_runtime_urls_json`, the base URL per environment |
-| | CI credential for the service's auth scheme (not wired yet) |
 
-Onboarding the next GitHub service means **one dispatch with five different inputs**.
+**Onboarding** the next GitHub service is one dispatch with five different inputs.
+**Useful CI** for it needs four more things per service:
+
+| CI requirement | Status in the pilot |
+|---|---|
+| Resource IDs for that service (resolved by `SERVICE_NAME` from the state file) | Done |
+| A reachable target (mock, or a dev URL the runner can reach) | Mock only |
+| A machine identity for its auth scheme | Missing (the 5 contract failures) |
+| Test data and cleanup for write calls | Not needed on the mock; needed for dev |
+
 Claims shows what changes when the CI system is different:
 [docs/adaptation-claims.md](docs/adaptation-claims.md).
 
@@ -123,8 +164,10 @@ Contract collection results from this repo's runs (Postman → `[Contract]` → 
 | Build 4 | Mock | 208 | 201 | 7 |
 | After the spec fixes (`9d98ad9`) | Mock | 207 | 202 | **5**, all "no credentials" |
 
-13 → 7 → 5: the mock removed the "no response" failures, the spec fixes removed the two
-real defects, and what's left is the one thing only the customer can provide, a CI identity.
+13 → 7 → 5 is a change of **target** and then of **spec version**: switching from
+unreachable URLs to the mock removed the "no response" failures; the spec changes
+removed two findings. The 5 left are missing-credential checks. Authenticated runtime
+validation is still pending a CI identity.
 
 The fix loop as it ran: spec-fix commit → onboarding re-run (40s, assets updated in place)
 → sync commit → CI against the regenerated collections:
@@ -139,18 +182,21 @@ arrives, so with no response they pass without checking anything. Check what fai
 whether requests got responses, not just the totals.
 
 **What they establish immediately, from the spec alone:**
-- Every operation is callable with the right method, path, parameters and an example body.
+- Requests are generated from the spec for every operation: method, path, parameters
+  and an example body.
 - Response status, schema and headers are checked against the spec.
-- Security requirements are enforced. Every request is checked for credentials matching
-  the spec's `security`.
-- **They found two real spec defects on day one**, both fixed in commit `9d98ad9`
-  ("Proposed spec fixes…", which would be a PR to the payments team) and confirmed by the
-  next contract run:
-  1. `POST /refunds` example `full_refund` sends `amount: null`, but `amount` is a
-     non-nullable `integer`. The description says to *omit* it for a full refund. Anyone
-     copying the docs example gets a validation error.
-  2. `GET /health` has no `security: []`, so it inherits OAuth/JWT. Health checks are
-     normally public, and the claims and loan specs both set `security: []` here.
+- Generated checks flag missing credentials: every request is checked against the
+  spec's `security` requirements.
+- **Two findings on day one**, both changed in commit `9d98ad9` ("Proposed spec fixes…",
+  which would be a PR to the payments team) and re-checked by the next contract run:
+  1. **Spec defect:** the published `POST /refunds` example `full_refund` sends
+     `amount: null`, but `amount` is a non-nullable `integer`, and the description says
+     to *omit* it for a full refund. Anyone copying the docs example gets a validation
+     error.
+  2. **Proposed correction, pending the payments owner:** `GET /health` has no
+     `security: []`, so it inherits OAuth/JWT. Health checks are usually public, and the
+     claims and loan specs set `security: []` here, but only the service owner can
+     confirm the intent.
 - Onboarding also produced static warnings: 401 responses don't declare
   `WWW-Authenticate`, and examples don't match their schemas.
 
@@ -192,23 +238,29 @@ creation allowed, and these repo secrets:
 |---|---|
 | `POSTMAN_API_KEY` | Service-account Postman API key |
 | `GH_PAT` | Fine-grained token for this repo: Actions, Contents, Variables, Workflows = read and write |
-| `POSTMAN_ACCESS_TOKEN` | *(optional fallback)* from `postman login` |
 
 ```bash
 gh workflow run check-secrets.yml          # 1. verify secrets
-gh workflow run onboard-service.yml        # 2. onboard (defaults = payment-refund)
-gh workflow run onboard-service.yml \
-  -f project_name=my-service -f spec_path=specs/my-service.yaml \
-  -f environments_json='["dev","prod"]' \
-  -f env_runtime_urls_json='{"dev":"https://...","prod":"https://..."}'   # another service
+gh workflow run onboard-service.yml        # 2. onboard (defaults = payment-refund); exports follow automatically
+gh workflow run export-collections.yml     #    (or re-export JSON on demand)
 ```
 
-**CI test target** (repository variables):
+Another service goes in **its own repo** with the same workflows, `vars.SERVICE_NAME` set,
+and its own inputs:
+
+```bash
+gh workflow run onboard-service.yml -f project_name=my-service -f spec_path=specs/my-service.yaml \
+  -f environments_json='["dev","prod"]' -f env_runtime_urls_json='{"dev":"https://...","prod":"https://..."}'
+```
+
+**CI test target** (repository variables). CI always uses the service's **dev**
+environment, never prod:
 
 | `CI_TARGET` | Behavior |
 |---|---|
-| `mock` (current) | Tests run against `POSTMAN_MOCK_URL`; failures are advisory (visible, non-blocking). **A failed test step still shows a green check** because of `continue-on-error`; the failures are only visible in the run's **Annotations** ("exit code 1") |
-| unset | Tests run against each environment's real `baseUrl`; failures block |
+| `mock` (current) | Dev environment with `baseUrl` = `POSTMAN_MOCK_URL`. The `POST /refunds → 201` happy path is **blocking**; smoke and contract are **advisory**. An advisory step shows a green check even when it fails, so read the **job summary** counts |
+| `dev` | Dev environment as-is; everything blocking. Needs a reachable dev URL and a CI identity |
+| unset / other | CI fails with an explanation |
 
 ![CI in mock mode: green run, test failures still visible as annotations](docs/screenshots/09-ci-mock-advisory.png)
 
@@ -218,10 +270,11 @@ gh workflow run onboard-service.yml \
   collections, environments, spec, contract run results, mock server and smoke monitor in
   Postman, the commit and state file in the repo, and called the mock (`GET /v2/refunds`
   returns the example refund).
-- **The monitor exists and is paused:** `payment-refund-api - Smoke Monitor` has 2 runs,
-  one triggered per onboarding run.
-- **Rerun-safe:** the second run reused all asset IDs. Postman shows exactly 3
-  collections and 4 environments after two runs.
+- **The monitor exists and is unscheduled:** `payment-refund-api - Smoke Monitor`,
+  triggered once per onboarding run, manually re-pointed to the mock for the demo.
+- **Reruns:** successful reruns reused the observed asset IDs. Postman showed exactly 3
+  collections and 4 environments after three runs. A partial failure is a different
+  case; see [the runbook](docs/runbook.md).
 - **Credentials verified in Actions itself**, not just locally (Check secrets workflow).
 - **Workflows linted** with `actionlint`.
 
@@ -236,6 +289,8 @@ gh workflow run onboard-service.yml \
 | Two spec defects | Contract: `amount` schema failure; `/health` asks for credentials | `amount: null` in the example; `/health` missing `security: []` | Fixed the spec (`9d98ad9`) and re-onboarded: 7 → 5 failures |
 | Monitor sent requests to `http://refunds/...` | 18 failures, 6 connection errors | The new environment's `baseUrl` was saved as a **local** value. Monitors run in Postman's cloud and only see **shared** values | Shared the value (☁ Share), and the monitor then reached the mock: 17 of 18 |
 | Preflight log noise | `curl: (23) Failure writing output` | `head -1` closed the pipe early | Download to a file, then check it |
+| Built-in tests hitting prod | The onboarding action's own smoke run went to `api.payments.example.com` | It runs against the first environment, and the smoke collection creates refunds | `skip-built-in-tests: 'true'`; tests only in `ci.yml` against mock/dev |
+| Preview GC failed (scheduled) | `npm E404 @postman/fs-utils@0.3.1` | Upstream package not published; `vars.POSTMAN_WORKSPACE_ID` unset. It cleans up branch previews, and this pilot creates none (`branch-strategy: legacy`) | Made it manual-only, with the reason in the file; product feedback |
 
 ![Monitor sending requests to http://refunds/... because baseUrl was a local value](docs/screenshots/14-monitor-local-value-bug.png)
 
@@ -255,15 +310,14 @@ gh workflow run onboard-service.yml \
   examples (201, 400, 401, 404, 409, 422, 429, 500, 503), and all 9 have exactly the
   same request (method, URL, body). The mock returns the `503` one, so smoke reports
   17 of 18. The `503` stayed after the spec fix, which confirms the request body isn't
-  what the mock uses to pick. Fixes, in order of preference:
-  1. Test against a real dev environment, where the server decides the status.
-  2. Send `x-mock-response-code: 201`. This has to live in the curated smoke flow
-     (`postman/flow.yaml`), because onboarding regenerates the Smoke collection on every
-     run (header support in the manifest not yet verified).
+  what the mock uses to pick. What I did:
+  1. **CI now checks the happy path explicitly** (blocking): `POST /refunds` with
+     `x-mock-response-code: 201`, then the response shape. It lives in `ci.yml`, not in
+     the Smoke collection, because onboarding regenerates that collection on every run.
+  2. The generic smoke run stays advisory on the mock. The real fix is a dev environment,
+     where the server decides the status.
   3. Not chosen: deleting the error examples or weakening the status check, which would
      turn the run green without proving anything.
-
-  That's why mock-mode CI is advisory.
 - **Flaky dependency.** One mock request took 60 s (`/health`), which pushed the
   average response time to 10 s. Monitors should alert on repeated failures, not on one.
 - **The monitor needed a hand-edit to be useful.** The action creates it paused (no
@@ -275,12 +329,14 @@ gh workflow run onboard-service.yml \
   - It's a hand-edit outside the pipeline, so a later onboarding run may reset the
     monitor to prod. That's config drift, and the real fix is a reachable environment.
   - It stays **unscheduled**. Scheduling it against a mock would report "healthy"
-    without checking the real API. Schedule and alert routing are the customer's call,
-    once a reachable URL and credentials exist.
+    without checking the real API, and against prod it would create refunds (the Smoke
+    collection makes write calls). A scheduled monitor needs a non-production target, or
+    a GET-only collection for prod. Schedule and alert routing are the customer's call.
 - **Where to find things in Postman:** the mock server and monitor are under the second
   sidebar view (*Mock servers* / *Monitors*), not the collections view.
-- **Advisory CI is a temporary state.** If `CI_TARGET=mock` is never removed, the
-  pipeline is permanently "green but not checking anything real".
+- **Advisory CI is a temporary state.** If `CI_TARGET` stays `mock`, the pipeline only
+  proves the wiring and the happy-path shape, never the real service. Moving to `dev` is
+  an exit criterion.
 
 ![Smoke monitor pointed at the mock: 17 of 18, the only failure is the mock's 503 on POST /refunds](docs/screenshots/07-monitor.png)
 
@@ -288,14 +344,19 @@ gh workflow run onboard-service.yml \
 
 ```
 .github/workflows/
-  onboard-service.yml   # onboarding entrypoint (one dispatch per service)
-  check-secrets.yml     # credentials preflight
-  ci.yml                # smoke + contract tests (generated once, then owned here)
-  postman-preview-gc.yml# generated by repo-sync (preview cleanup)
-.postman/resources.yaml # state: Postman IDs, used to make reruns safe
-postman/                # exported collections and environments
-specs/                  # the three provided OpenAPI specs
-docs/adaptation-claims.md
+  onboard-service.yml     # onboarding entrypoint (one dispatch per service)
+  export-collections.yml  # v2.1 JSON exports: credential scan + test import
+  check-secrets.yml       # credentials preflight
+  ci.yml                  # tests against an explicit mock/dev target (generated once, then owned here)
+  postman-preview-gc.yml  # generated by repo-sync; manual-only (see Issues)
+.postman/resources.yaml   # state: Postman IDs, read by reruns, CI and exports
+postman/collections/      # native v3 YAML exports (repo-sync)
+postman/exports/          # importable v2.1 JSON exports
+specs/                    # the three provided OpenAPI specs
+docs/deck.pptx            # presentation
+docs/engagement-plan.md   # value, rollout, handoff
+docs/runbook.md           # operating and recovery
+docs/adaptation-claims.md # second service (proposal)
 docs/screenshots/       # evidence from the real runs (see below)
 starter-assets/         # original starter, kept for comparison (not used)
 ```
@@ -326,9 +387,10 @@ All taken from the real runs on 18–19 Nov 2026.
 
 I used Claude Code throughout, as a pair:
 
-- **AI drafted:** both workflow files, the `ci.yml` mock switch, the Check secrets
-  workflow, the first drafts of this README and the adaptation analysis, and the
-  shell commands used to verify credentials.
+- **AI drafted:** the workflow files (onboarding, CI target logic and job summary,
+  JSON export, Check secrets), the first drafts of this README, the docs and the deck,
+  and the shell commands used to verify credentials. A review pass then tightened input
+  handling, the CI target and the wording of claims; I decided which changes to make.
 - **AI analysed:** the upstream action docs (it found the current version, the service
   token action and the GitLab CLI path), the specs, and the run logs.
 - **I did and decided:** set up the Postman Enterprise trial, service account and

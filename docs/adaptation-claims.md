@@ -48,30 +48,45 @@ GitHub Action is just a wrapper we're not using here.
 
 ### 1. The CI runner: GitLab CI instead of GitHub Actions
 
-Replace the composite action with the CLIs in `.gitlab-ci.yml`:
+> **Proposal, not run.** Nothing in this section has been executed. Before presenting
+> any of it as working, verify: the CLI flag names (taken from the documented
+> kebab-case action inputs), `--dotenv-path` output keys, whether a Postman CLI
+> container image exists (otherwise install it in the job), and whether repo-sync's
+> commit-back and workspace-to-repo linking support GitLab remotes. If linking isn't
+> supported, the catalog still works and only the Git link in Postman is lost.
+
+The same two steps as the GitHub action, as Postman's npm CLIs, plus the pieces a
+GitLab pipeline has to supply itself: a concurrency guard, a handoff of the generated
+IDs to the test jobs, a runner that can reach private endpoints, and separate write and
+read-only test jobs.
 
 ```yaml
 # PROPOSED — not executed. Based on postman-api-onboarding-action/docs/non-github-ci.md
 stages: [onboard, test]
 
+variables:
+  SERVICE: claims-processing-api
+
 onboard:claims:
   stage: onboard
   image: node:20
+  tags: [vpc-runner]                    # self-hosted runner inside the network (see below)
+  resource_group: onboard-claims        # one onboarding run at a time = no duplicate assets
   rules:
-    - if: $CI_PIPELINE_SOURCE == "web"            # manual "Run pipeline", like workflow_dispatch
+    - if: $CI_PIPELINE_SOURCE == "web"  # manual "Run pipeline", like workflow_dispatch
     - changes: [specs/claims-processing-api-openapi.yaml]
   script:
     - npm install -g @postman-cs/onboarding-bootstrap @postman-cs/onboarding-repo-sync @postman-cs/onboarding-resolve-service-token
     - apt-get update -qq && apt-get install -y -qq jq
     - postman-resolve-service-token --postman-api-key "$POSTMAN_API_KEY" --postman-region us > token.json
-    - export POSTMAN_ACCESS_TOKEN=$(jq -r .token token.json) POSTMAN_TEAM_ID=$(jq -r '.["team-id"]' token.json)
+    - export POSTMAN_ACCESS_TOKEN="$(jq -r .token token.json)" POSTMAN_TEAM_ID="$(jq -r '.["team-id"]' token.json)"
     - >
-      postman-bootstrap --project-name claims-processing-api
+      postman-bootstrap --project-name "$SERVICE"
       --spec-path specs/claims-processing-api-openapi.yaml
       --postman-api-key "$POSTMAN_API_KEY" --postman-access-token "$POSTMAN_ACCESS_TOKEN"
       --postman-team-id "$POSTMAN_TEAM_ID" --result-json bootstrap.json
     - >
-      postman-repo-sync --project-name claims-processing-api
+      postman-repo-sync --project-name "$SERVICE"
       --workspace-id "$(jq -r '.["workspace-id"]' bootstrap.json)"
       --baseline-collection-id "$(jq -r '.["baseline-collection-id"]' bootstrap.json)"
       --smoke-collection-id "$(jq -r '.["smoke-collection-id"]' bootstrap.json)"
@@ -79,32 +94,70 @@ onboard:claims:
       --environments-json '["dev","staging","prod"]'
       --env-runtime-urls-json "$CLAIMS_ENV_URLS"
       --postman-api-key "$POSTMAN_API_KEY" --postman-access-token "$POSTMAN_ACCESS_TOKEN"
-      --postman-team-id "$POSTMAN_TEAM_ID" --result-json sync.json
+      --postman-team-id "$POSTMAN_TEAM_ID" --result-json sync.json --dotenv-path sync.env
+    # ID handoff: expose the IDs the test jobs need as job variables
+    - |
+      {
+        echo "SMOKE_UID=$(jq -r '.["smoke-collection-id"]' bootstrap.json)"
+        echo "CONTRACT_UID=$(jq -r '.["contract-collection-id"]' bootstrap.json)"
+        echo "DEV_ENV_UID=$(jq -r '.["environment-uids-json"] | fromjson | .dev' sync.json)"
+        echo "STAGING_ENV_UID=$(jq -r '.["environment-uids-json"] | fromjson | .staging' sync.json)"
+      } > ids.env
+  artifacts:
+    reports:
+      dotenv: ids.env                   # test jobs receive SMOKE_UID, CONTRACT_UID, *_ENV_UID
 
-test:claims:
+# Write flow (file -> adjudicate -> settle): dev only, seeded data, cleanup afterwards.
+test:claims:dev:
   stage: test
-  image: postman/postman-cli:latest   # or install via dl-cli.pstmn.io
+  tags: [vpc-runner]
+  needs: [onboard:claims]
+  resource_group: claims-dev-data       # runs can't race on the same seeded policy
   script:
+    - curl -fsSL https://dl-cli.pstmn.io/install/unix.sh | sh
     - postman login --with-api-key "$POSTMAN_API_KEY"
-    - postman collection run "$SMOKE_UID" -e "$ENV_UID" --env-var "apiKey=$CLAIMS_CI_API_KEY"
-    - postman collection run "$CONTRACT_UID" -e "$ENV_UID" --env-var "apiKey=$CLAIMS_CI_API_KEY"
+    - postman collection run "$SMOKE_UID" -e "$DEV_ENV_UID" --env-var "apiKey=$CLAIMS_CI_API_KEY_DEV" --env-var "policyId=pol_ci_seed_001"
+    - postman collection run "$CONTRACT_UID" -e "$DEV_ENV_UID" --env-var "apiKey=$CLAIMS_CI_API_KEY_DEV"
+  after_script:
+    - ./scripts/cleanup-ci-claims.sh pol_ci_seed_001   # owned by the insurance team
+
+# Read-only probes against staging (and prod, if approved): GET operations only.
+test:claims:readonly:
+  stage: test
+  tags: [vpc-runner]
+  needs: [onboard:claims]
+  script:
+    - curl -fsSL https://dl-cli.pstmn.io/install/unix.sh | sh
+    - postman login --with-api-key "$POSTMAN_API_KEY"
+    - postman collection run "$READONLY_SMOKE_UID" -e "$STAGING_ENV_UID" --env-var "apiKey=$CLAIMS_CI_API_KEY_RO"
 ```
 
-Assumptions to check before running this: the exact CLI flag names (taken from the
-documented kebab-case action inputs), whether a `postman/postman-cli` image exists or
-the CLI has to be installed in the job, and whether repo-sync's commit-back and
-workspace-to-repo linking support GitLab remotes the way they do GitHub. If linking
-isn't supported, the catalog still works and only the Git link in Postman is lost.
+`READONLY_SMOKE_UID` is a GET-only smoke collection, produced by the action's smoke-flow
+step with `flow-derive-scope: read-only`, or curated by hand. The generated smoke
+collection files claims, so it never runs outside dev.
+
+**Who owns what this pipeline needs:**
+
+| Need | Owner | Notes |
+|---|---|---|
+| Self-hosted runner in the VPC (`vpc-runner`) | Platform team | The claims endpoints are private; GitLab's shared runners can't reach them. Needs egress to `api.getpostman.com`, `registry.npmjs.org`, `dl-cli.pstmn.io` |
+| `POSTMAN_API_KEY` (service account), project access token (`write_repository`) | Platform team | Masked, protected CI/CD variables |
+| `CLAIMS_CI_API_KEY_DEV` (read/write, dev only), `CLAIMS_CI_API_KEY_RO` (read-only) | Insurance team + security | Two keys, so a leaked read-only key can't file claims |
+| Seeded policy `pol_ci_seed_001` and `cleanup-ci-claims.sh` | Insurance team | Without these, "one claim per incident per policy" returns 409 on every run |
+| `CLAIMS_ENV_URLS` (dev, staging, prod entry points) | Platform team | API Gateway stage or ALB per environment |
 
 What changes in the plumbing:
 
-| Concern | GitHub (payment refund) | GitLab (claims) |
+| Concern | GitHub (payment refund, built) | GitLab (claims, proposed) |
 |---|---|---|
 | Trigger | `workflow_dispatch` | Manual pipeline (`CI_PIPELINE_SOURCE == "web"`) or `rules: changes:` on the spec |
+| Concurrency guard | `concurrency: onboard-<service>` | `resource_group: onboard-claims` (and one per test-data set) |
+| ID handoff to tests | `ci.yml` reads `.postman/resources.yaml` | `artifacts: reports: dotenv` from the onboarding job |
+| Reaching private endpoints | Not needed in the pilot (mock) | Self-hosted runner inside the network |
 | Secrets | Repo secrets `POSTMAN_API_KEY`, `GH_PAT` | Masked, protected CI/CD variables |
-| Writing back to the repo | Fine-grained PAT (Contents, Variables, Workflows) | Project access token with `write_repository` |
-| Generated CI workflow | `ci.yml` written by repo-sync, then owned by us | Not applicable (GitHub-specific). We own the `test:claims` job from day one |
-| Concurrency guard | `concurrency: onboard-<service>` | `resource_group: onboard-claims` |
+| Writing back to the repo | Fine-grained PAT (Contents, Variables, Workflows) | Project access token with `write_repository` (unverified with repo-sync) |
+| Write tests | Mock or dev only, never prod | Dev only, seeded data, cleanup in `after_script` |
+| Read-only probes | Not built | GET-only collection against staging/prod |
 
 ### 2. Auth: easier for CI than payment refund
 
@@ -119,8 +172,9 @@ machine-friendly options:
   token itself with client ID and secret variables. Scope the token to `claims:read`
   for smoke runs, not `settlements:process`.
 
-Either way, run the action's built-in tests deferred (`skip-built-in-tests`), or run our
-own test job as above, so credentials are injected *before* the collections run.
+Either way, credentials are injected by the test jobs at run time (as above), never stored
+in the collections. The payment-refund build already skips the action's built-in tests
+(`skip-built-in-tests`) for the same reason.
 
 ### 3. Environments and base URLs
 
