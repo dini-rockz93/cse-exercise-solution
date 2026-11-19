@@ -77,11 +77,17 @@ jobs:
           if grep -RInE 'PMAK-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}' "$dir"; then
             echo "::error::Possible API key or JWT in exports"; exit 1
           fi
+          # A key that names a secret, with a non-empty value that isn't a {{variable}}.
+          # Excluded: OAuth *settings* that contain "token" in their name but hold no
+          # secret (endpoint URLs, the token's display name/type, header prefix).
+          filter='[.. | objects
+                   | select(.key? and (.key | tostring | test("(?i)(secret|token|password|api[-_]?key)")))
+                   | select(.key | tostring | test("(?i)(url$|^tokenName$|^tokenType$|^headerPrefix$|^addTokenTo$)") | not)
+                   | select((.value // "") | tostring | length > 0)
+                   | select((.value // "") | tostring | startswith("{{") | not)]'
           for f in "$dir"/*.json; do
-            hits=$(jq '[.. | objects | select((.key? // "" | tostring | test("(?i)(secret|token|password|api[-_]?key|client[-_]?secret)"))
-                       and ((.value // "") | tostring | length > 0)
-                       and ((.value // "") | tostring | startswith("{{") | not))] | length' "$f")
-            [ "$hits" = "0" ] || { echo "::error::$f has $hits credential-like values"; jq -c '[.. | objects | select(.key? // "" | tostring | test("(?i)(secret|token|password|api[-_]?key)"))] ' "$f"; exit 1; }
+            hits=$(jq "$filter | length" "$f")
+            [ "$hits" = "0" ] || { echo "::error::$f has $hits credential-like values"; jq -c "$filter | map(.key)" "$f"; exit 1; }
           done
           echo "No credentials found in $dir"
 
