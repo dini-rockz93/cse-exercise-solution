@@ -17,6 +17,20 @@ with the VP of Platform Engineering in week 1.
 - Hundreds of workspaces with no consistent structure. Specs are missing or have drifted.
   There's no catalog and no contract testing.
 
+### How Postman fixes it
+
+Each problem maps to a Postman capability. Rows marked *Built* were created for
+payment-refund by one onboarding run, from the spec alone. The platform team runs the
+workflow; service teams don't set anything up by hand in Postman.
+
+| Problem today | Postman capability | What it gives engineers | Status |
+|---|---|---|---|
+| No catalog | A workspace per service, owned by a service account, with its spec in Spec Hub | One place to find an API, its docs and its environments | Built: `01-workspace-overview.png`, `02-spec-hub.png` |
+| Tests start from zero | Baseline, smoke and contract collections generated from the spec | Requests and schema checks for every operation, with no hand-written tests | Built: `postman/exports/payment-refund-api/` |
+| Specs drift | Postman CLI running the contract collection in CI on every push | Drift flagged in the pipeline, not by a consumer in staging | Built against the mock; runtime drift needs a reachable dev URL and credential |
+| No ongoing signal | Postman monitors on non-production environments | Scheduled checks with alerts | Monitor exists, unscheduled, pointed at the mock (`07-monitor.png`); scheduling and alert routing are planned |
+| Services with no spec | Postman Insights, or a code-first spec the owner writes | A spec to onboard where none exists | Planned (lane D), not demonstrated |
+
 ### What one onboarding run replaces
 
 | Manual step today | After | Evidence |
